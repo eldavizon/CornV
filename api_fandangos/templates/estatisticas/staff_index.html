@@ -1,0 +1,82 @@
+{% load crispy_forms_tags %}
+
+
+<div class="container">
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    Faça sua retirada
+                </div>
+                <div class="card-body ">
+                    <form method="POST">
+                        
+                        {% csrf_token %}
+
+                        {{ form|crispy }}
+
+
+                        <input class="btn btn-info btn-block" type="submit" value="Make Request">
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    Produtos que você retirou recentemente
+                </div>
+                <div class="card-body">
+                    <table class="table bg-white">
+                        <thead class="bg-info bg-dark text-white">
+                            <tr>
+                                <th scope="col">Produto</th>
+                                <th scope="col">Classificação</th>
+                                <th scope="col">Data da retirada</th>
+                                <th scope="col">Disponibilidade em estoque</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                            {% for retirada in retiradas %}
+                            
+                            {% if retirada.staff == user%} <!-- Só exibe os itens retirados pela própria pessoa logada.-->
+
+                            <tr>
+                                <td> {{retirada.produto}} </td>
+                                <td> {{retirada.produto.classificacao}} </td>
+
+                                <td> {{retirada.data}} </td>
+
+
+                                <td> 
+                                    <!-- A retirada somente é permitida se há produtos no estoque (quantidade maior que zero)-->
+
+                                    {% if retirada.quantidade_retirada != 0 %}
+
+                                    <p class="text-success">Disponível</p>
+
+                                    {% else %}
+
+                                    <p class="text-danger"> Indisponível </p>
+
+                                    {% endif %}
+
+
+                                </td>
+                            
+
+                            </tr>
+
+                            {% endif %}
+
+                            {% endfor %}    
+							
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

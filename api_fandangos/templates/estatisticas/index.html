@@ -1,0 +1,133 @@
+{% extends 'partials/base.html' %}
+{% block title %} Página Inicial{% endblock %}
+{% load crispy_forms_tags %}
+
+<!--Block de gráficos-->
+
+
+{% block content%} 
+
+{% if user.is_authenticated and user.is_staff %}  <!-- user.is_superuser também é um argumento válido. -->
+
+
+ <!--Topside - widgets de informações-->
+
+ {% include 'partials/topnav.html' %}
+
+
+ <!--End Topside-->
+
+<div class="container">
+    <div class="row my-5">
+        <div class="col-md-6">
+            <div class="bg-white">
+                <canvas id="myChart1" width="400" height="300"></canvas>
+                <script>
+
+                    // Função para gerar cores bem distribuídas no espectro HSL
+                    function gerarCoresContraste(totalCores) {
+                        let cores = [];
+                        let intervaloHue = 360 / totalCores;  // Divide o espectro uniformemente
+
+                        for (let i = 0; i < totalCores; i++) {
+                            let hue = Math.floor(i * intervaloHue);  // Distribui os tons uniformemente
+                            let saturation = 60 + Math.floor(Math.random() * 20); // Saturação entre 60-80%
+                            let lightness = 65 + Math.floor(Math.random() * 15);  // Luminosidade entre 65-80%
+                            cores.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
+                        }
+
+                        return cores;
+                    }
+
+                    // Obtém o número total de produtos retirados
+                    var totalProdutos = {{ retiradas|length }};
+                    var coresContraste = gerarCoresContraste(totalProdutos);
+
+                    var ctx = document.getElementById('myChart1').getContext('2d');
+                    var myChart1 = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: [{% for retirada in retiradas_agrupadas %} '{{retirada.produto__nome}}', {% endfor%}],
+                            datasets: [{
+                                label: 'Produtos Químicos Retirados',
+                                data: [{% for produto in retiradas_agrupadas %} {{produto.total_retirado}}, {% endfor%}],
+                                backgroundColor: coresContraste, // Aplica cores com contraste
+                                borderColor: coresContraste, // Mantém bordas da mesma cor
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true
+                                    }
+                                }]
+                            }
+                        }
+                    });
+                </script>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="bg-white">
+                <canvas id="myChart" width="400" height="300"></canvas>
+                <script>
+
+                    // Função para gerar cores bem distribuídas no espectro HSL
+                    function gerarCoresContraste(totalCores) {
+                        let cores = [];
+                        let intervaloHue = 360 / totalCores;  // Divide o espectro uniformemente
+
+                        for (let i = 0; i < totalCores; i++) {
+                            let hue = Math.floor(i * intervaloHue);  // Distribui os tons uniformemente
+                            let saturation = 60 + Math.floor(Math.random() * 20); // Saturação entre 60-80%
+                            let lightness = 65 + Math.floor(Math.random() * 15);  // Luminosidade entre 65-80%
+                            cores.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
+                        }
+
+                        return cores;
+                    }
+
+                    // Obtém o número total de produtos
+                    var totalProdutos = {{ produtos|length }};
+                    var coresContraste = gerarCoresContraste(totalProdutos);
+
+                    var ctx = document.getElementById('myChart').getContext('2d');
+                    var myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: [{% for produto in produtos %} '{{produto.nome}}', {% endfor %}],
+                            datasets: [{
+                                label: 'Quantidade em estoque',
+                                data: [{% for produto in produtos %} '{{produto.quantidade}}', {% endfor %}],
+                                backgroundColor: coresContraste, // Aplica cores com contraste
+                                borderColor: coresContraste, // Mantém bordas da mesma cor
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true
+                                    }
+                                }]
+                            }
+                        }
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+
+{% include 'estatisticas/staff_index.html' %}
+
+
+{% endif %}
+
+
+{% endblock %}
