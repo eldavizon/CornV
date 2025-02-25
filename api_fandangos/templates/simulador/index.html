@@ -1,0 +1,27 @@
+{% extends 'partials/base.html' %}
+{% block title %} Página Inicial de Estatísticas{% endblock %}
+{% load crispy_forms_tags %}
+
+<!--Block de gráficos-->
+
+
+{% block content%} 
+
+{% if user.is_authenticated and user.is_staff %}  <!-- user.is_superuser também é um argumento válido. -->
+
+
+ <!--Topside - widgets de informações-->
+
+
+
+ <!--End Topside-->
+
+<h1> Página do Simulador!</h1>
+
+{% else %}
+
+
+{% endif %}
+
+
+{% endblock %}

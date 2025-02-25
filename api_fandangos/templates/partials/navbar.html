@@ -1,6 +1,6 @@
 {% load static %}
 
-<nav class="navbar navbar-expand-lg bg-body-tertiary bg-dark border-bottom border-body" data-bs-theme="dark">
+<nav class="navbar navbar-expand-lg" style="background-color: #2c2c2c; border-bottom: 3px solid #444;" data-bs-theme="dark">
   
   <div class="container-fluid">
 
@@ -22,19 +22,19 @@
             {% if user.is_authenticated %}
               
                 <li class="nav-item me-3">
-                  <a class="nav-link active fw-bold" href="{% url 'estatisticas-index' %}">Home</a>
+                  <a class="nav-link active fw-bold text-light" href="{% url 'estatisticas-index' %}">Home</a>
                 </li>
                 <li class="nav-item me-3">
-                    <a class="nav-link fw-bold" href="#">Link</a>
+                    <a class="nav-link fw-bold text-light" href="{% url 'simulador-index' %}">Simulação</a>
                 </li>
                 <li class="nav-item me-3">
-                    <a class="nav-link disabled" aria-disabled="true">Disabled</a>
+                    <a class="nav-link disabled text-secondary" aria-disabled="true">Disabled</a>
                 </li>
                 <li class="nav-item me-3">
-                    <a class="nav-link active fw-bold" href="#">Teste 1</a>
+                    <a class="nav-link active fw-bold text-light" href="#">Teste 1</a>
                 </li>
                 <li class="nav-item me-3">
-                    <a class="nav-link active fw-bold" href="#">Teste 2</a>
+                    <a class="nav-link active fw-bold text-light" href="#">Teste 2</a>
                 </li>
 
             {% endif %}
@@ -45,7 +45,7 @@
                       <!-- Conteúdo para usuários autenticados -->
                       {% if user.is_authenticated %}
 
-                          <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 p-0" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="line-height: 40px;">
+                          <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 p-0 text-light" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="line-height: 40px;">
                               {{ user.username }}
                               <img class="rounded-circle" src="{{ user.profile.image.url }}" alt="" 
                               style="width: 35px; height: 35px; object-fit: cover;">
@@ -53,28 +53,26 @@
 
                       {% else %}
 
-                          <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 p-0" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="line-height: 40px;">
+                          <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 p-0 text-light" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="line-height: 40px;">
                           Login / Registrar
                           </a>
 
                       {% endif %}
               
-                      <ul class="dropdown-menu">
-
+                      <ul class="dropdown-menu" style="background-color: #3a3a3a; border: 1px solid #444;">
 
                         {% if user.is_authenticated %}
-                            <li><a class="dropdown-item fw-bold" href="{% url 'user-profile' %}">Perfil</a></li>
+                            <li><a class="dropdown-item fw-bold text-light" href="{% url 'user-profile' %}">Perfil</a></li>
                             <li class="d-flex">
                                 <form action="{% url 'user-logout' %}" method="post" class="w-100">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-hover-highlight w-100 text-start fw-bold">Logout</button>
+                                    <button type="submit" class="btn w-100 text-start fw-bold text-light" style="background-color: #3a3a3a; border: none;">Logout</button>
                                 </form>
                             </li>
                         {% else %}
-                            <li><a class="dropdown-item fw-bold" href="{% url 'user-login' %}">Login</a></li>
-                            <li><a class="dropdown-item fw-bold" href="{% url 'user-register' %}">Registrar</a></li>
+                            <li><a class="dropdown-item fw-bold text-light" href="{% url 'user-login' %}">Login</a></li>
+                            <li><a class="dropdown-item fw-bold text-light" href="{% url 'user-register' %}">Registrar</a></li>
                         {% endif %}
-
 
                       </ul>
                 </li>
@@ -84,8 +82,8 @@
         <!-- Barra de pesquisa visível apenas para usuários autenticados -->
         {% if user.is_authenticated %}
           <form class="d-flex" role="search">
-            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-            <button class="btn btn-outline-success" type="submit">Search</button>
+            <input class="form-control me-2 bg-dark text-light border-0" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn text-light" type="submit" style="border: 1px solid #444;">Search</button>
           </form>
         {% endif %}
       </div>

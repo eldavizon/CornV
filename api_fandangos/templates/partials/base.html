@@ -21,52 +21,43 @@
     <title>{% block title %} {% endblock %}</title>
 
     <style>
+      body {
+        background-color: #1e1e1e;
+        color: #f8f9fa;
+      }
 
-      /* estilo para que o botão também dê highlight */
-    .btn-hover-highlight {
-      transition: background-color 0.2s ease, transform 0.2s ease; /* Suavidade no hover */
-    }
+      .navbar {
+        background-color: #2b2b2b;
+      }
 
-    .btn-hover-highlight:hover {
-      background-color: #2B3035; /* Tom para o highlight */
-      color: #fff; /* Garantir que o texto fique legível */
-    }
+      .btn-hover-highlight {
+        transition: background-color 0.2s ease, transform 0.2s ease;
+        background-color: #ffc107; /* Amarelo */
+        color: #1e1e1e;
+        border: none;
+      }
+
+      .btn-hover-highlight:hover {
+        background-color: #ffdb58; /* Amarelo mais claro */
+        color: #1e1e1e;
+      }
+
+      .text-highlight {
+        color: #ffc107;
+      }
     </style>
-
   </head>
   <body>
-
     <!--Navbar-->
-
     {% include 'partials/navbar.html' %}
-
     <!-- End Navbar-->
 
-   
-
     <!--Block Content-->
-
     {% block content%} 
-
     {% endblock %}
-
     <!--Endblock-->
 
-
-
-
-
-
-
-    <!-- Optional JavaScript; choose one of the two! -->
-
-    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <!-- Optional JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-
-    <!-- Option 2: Separate Popper and Bootstrap JS -->
-    <!--
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
-    -->
   </body>
 </html>

@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'estatisticas.apps.EstatisticasConfig',
+    'simulador.apps.SimuladorConfig',
     'user.apps.UserConfig',
     'crispy_forms',
     'crispy_bootstrap5',
