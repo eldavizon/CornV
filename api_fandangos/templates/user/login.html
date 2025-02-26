@@ -18,10 +18,10 @@
             {% endif %}
             {% endfor %}
 
-            <div class="border p-3 bg-white">
+            <div class="border p-3 bg-dark text-light">
                 <h3>Faça o login.</h3>
 
-                <form action="" method="POST">
+                <form action="" method="POST" class="bg-dark text-light p-4 rounded">
                     {% csrf_token %}
 
                     {{ form|crispy }}

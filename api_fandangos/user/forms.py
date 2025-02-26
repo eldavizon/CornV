@@ -20,6 +20,17 @@ class CreateUserForm(UserCreationForm):
         self.fields['email'].label = "Endereço de E-mail"
         self.fields['password1'].label = "Senha"
         self.fields['password2'].label = "Confirmação de Senha"
+
+         # Personalizando o help_text diretamente
+        self.fields['username'].help_text = "Escolha um nome único para sua conta."
+        self.fields['email'].help_text = "Usaremos esse e-mail para enviar informações importantes."
+        self.fields['password1'].help_text = (
+            "Sua senha não pode ser muito semelhante a outras informações pessoais. "
+            "A senha deve conter pelo menos 8 caracteres. Não pode ser uma senha comumente usada, "
+            "nem pode ser totalmente numérica."
+        )
+        self.fields['password2'].help_text = "Digite a mesma senha para confirmação."
+
         
         
 class UserUpdateForm(forms.ModelForm):
