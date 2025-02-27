@@ -1,5 +1,5 @@
 {% extends 'partials/base.html' %}
-{% block title %} Página Inicial de Estatísticas{% endblock %}
+{% block title %} Página Inicial de Simuladores{% endblock %}
 {% load crispy_forms_tags %}
 
 <!--Block de gráficos-->
@@ -7,18 +7,98 @@
 
 {% block content%} 
 
-{% if user.is_authenticated and user.is_staff %}  <!-- user.is_superuser também é um argumento válido. -->
+{% if user.is_authenticated %}  <!-- user.is_superuser também é um argumento válido. -->
+
+<div class="container mt-4 text-white" style="max-width: 1100px;">
+    <h5 class="text-highlight text-center">Gráfico Interativo</h5>
+    <div class="d-flex flex-row justify-content-between">
+      <div style="flex: 3;">
+        <canvas id="meuGrafico" style="max-height: 70vh; width: 100%;"></canvas>
+      </div>
+      <div class="accordion ms-3" id="opcoesEntrada" style="flex: 1; max-width: 250px;">
+        <div class="accordion-item bg-dark text-white">
+          <h2 class="accordion-header">
+            <button class="accordion-button btn-hover-highlight text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOpcoes" aria-expanded="true" aria-controls="collapseOpcoes">
+              Opções de Entrada
+            </button>
+          </h2>
+          <div id="collapseOpcoes" class="accordion-collapse collapse show" data-bs-parent="#opcoesEntrada">
+            <div class="accordion-body" style="font-size: 12px; padding: 8px;">
+              <div class="mb-1">
+                <label for="formula" class="form-label">Escolha a Fórmula</label>
+                <select id="formula" class="form-select form-select-sm">
+                  <option value="opcao1">Fórmula 1</option>
+                  <option value="opcao2">Fórmula 2</option>
+                  <option value="opcao3">Fórmula 3</option>
+                </select>
+              </div>
+              <div class="mb-1">
+                <label for="labelX" class="form-label">Rótulo do Eixo X</label>
+                <input type="text" id="labelX" class="form-control form-control-sm" placeholder="Digite um rótulo">
+              </div>
+              <div class="mb-1">
+                <label for="labelY" class="form-label">Rótulo do Eixo Y</label>
+                <input type="text" id="labelY" class="form-control form-control-sm" placeholder="Digite um rótulo">
+              </div>
+              <div class="mb-1">
+                <label for="valor" class="form-label">Adicionar Valor</label>
+                <input type="number" id="valor" class="form-control form-control-sm" placeholder="Digite um número">
+              </div>
+              <button class="btn btn-hover-highlight btn-sm w-100" onclick="atualizarGrafico()">Atualizar Gráfico</button>
+              <button class="btn btn-hover-highlight btn-sm w-100 mt-2" onclick="exportarGrafico()">Exportar como PNG</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    var ctx = document.getElementById('meuGrafico').getContext('2d');
+    var meuGrafico = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Valores',
+          data: [],
+          backgroundColor: 'rgba(255, 193, 7, 0.6)',
+          borderColor: 'rgba(255, 193, 7, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.6)' }, ticks: { color: '#ffffff', font: { size: 14, weight: 'bold' } } },
+          x: { grid: { color: 'rgba(255,255,255,0.6)' }, ticks: { color: '#ffffff', font: { size: 14, weight: 'bold' } } }
+        },
+        plugins: {
+          legend: { labels: { color: '#ffffff', font: { size: 14, weight: 'bold' } } }
+        }
+      }
+    });
+  
+    function atualizarGrafico() {
+      var labelX = document.getElementById('labelX').value || 'Sem Nome';
+      var valor = parseFloat(document.getElementById('valor').value) || 0;
+      
+      meuGrafico.data.labels.push(labelX);
+      meuGrafico.data.datasets[0].data.push(valor);
+      meuGrafico.update();
+    }
+  
+    function exportarGrafico() {
+      var canvas = document.getElementById('meuGrafico');
+      var link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = 'grafico.png';
+      link.click();
+    }
+  </script>
 
 
- <!--Topside - widgets de informações-->
-
-
-
- <!--End Topside-->
-
-<h1> Página do Simulador!</h1>
-
-{% else %}
+  {% else %}
 
 
 {% endif %}
