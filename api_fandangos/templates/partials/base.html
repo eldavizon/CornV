@@ -21,9 +21,40 @@
     <title>{% block title %} {% endblock %}</title>
 
     <style>
+
+      {% if user.is_authenticated %}
       body {
-        background-color: #1e1e1e;
         color: #f8f9fa;
+
+      }
+      {% else %}
+      body {
+        background-color:#212529 ;
+      }
+      {% endif %}
+      
+
+          /* Cor de fundo da sidebar */
+      .sidebar {
+        width: 280px;
+        height: 100vh;  /* Altura 100% da tela */
+        position: fixed;  /* Fixa a sidebar na tela */
+        top: 0; /* Começa do topo */
+        left: 0; /* Alinha à esquerda */
+        bottom: 0; /* Garante que vai até o final */
+        overflow-y: auto; /* Caso haja conteúdo maior, a sidebar terá rolagem */      }
+
+
+      /* Cor do item selecionado */
+      .nav-link.active {
+        background-color: #949D6A !important; /* Verde mais claro */
+        color: white !important;
+      }
+
+      /* Cor do item ao passar o mouse */
+      .nav-link:hover {
+        background-color: #949D6A !important; /* Outro tom de verde */
+        color: white !important;
       }
 
       .navbar {
@@ -51,19 +82,35 @@
     font-size: 14px;          /* Ajuste o tamanho da fonte, se necessário */
     }
 
+        /* Conteúdo principal fica ao lado da sidebar */
+    .flex-grow-1 {
+      margin-left: 280px; /* Adiciona a largura da sidebar */
+      padding-top: 20px;  /* Adiciona um pouco de espaçamento para o conteúdo não ficar encostado no topo */
+    }
+
+
     </style>
   </head>
   <body>
-    <!--Navbar-->
-    {% include 'partials/navbar.html' %}
-    <!-- End Navbar-->
+    <div class="d-flex">
 
-    <!--Block Content-->
-    {% block content%} 
-    {% endblock %}
-    <!--Endblock-->
+      {% if user.is_authenticated %}
 
+      <!-- Sidebar -->
+      {% include 'partials/sidebar.html' %}
+      
+      {% endif %}
+
+
+      <!-- Conteúdo Principal -->
+      <div class="flex-grow-1 p-4">
+        {% block content %} 
+        {% endblock %}
+      </div>
+    </div>
+  
     <!-- Optional JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
   </body>
+  
 </html>
