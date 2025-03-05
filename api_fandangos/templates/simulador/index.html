@@ -2,18 +2,12 @@
 {% block title %} Página Inicial de Simuladores{% endblock %}
 {% load crispy_forms_tags %}
 
-<!--Block de gráficos-->
+{% block content %} 
 
-
-{% block content%} 
-
-{% if user.is_authenticated %}  <!-- user.is_superuser também é um argumento válido. -->
-
-<!-- Widgets Produtos Cepea - www.cepea.esalq.com.br/br/widget.aspx -->
-<script type="text/javascript" src="https://www.cepea.esalq.usp.br/br/widgetproduto.js.php?fonte=arial&tamanho=10&largura=400px&corfundo=dbd6b2&cortexto=333333&corlinha=ede7bf&id_indicador%5B%5D=77"></script>
+{% if user.is_authenticated %}
 
 <div class="container mt-4 text-white" style="max-width: 1100px;">
-    <h5 class="text-highlight text-center">Gráfico Interativo</h5>
+    <h5 class="text-highlight text-center">Gráfico de Viabilidade Econômica</h5>
     <div class="d-flex flex-row justify-content-between">
       <div style="flex: 3;">
         <canvas id="meuGrafico" style="max-height: 70vh; width: 100%;"></canvas>
@@ -27,84 +21,119 @@
           </h2>
           <div id="collapseOpcoes" class="accordion-collapse collapse show" data-bs-parent="#opcoesEntrada">
             <div class="accordion-body" style="font-size: 12px; padding: 8px;">
+              
               <div class="mb-1">
-                <label for="formula" class="form-label">Escolha a Fórmula</label>
-                <select id="formula" class="form-select form-select-sm">
-                  <option value="opcao1">Fórmula 1</option>
-                  <option value="opcao2">Fórmula 2</option>
-                  <option value="opcao3">Fórmula 3</option>
-                </select>
+                <label for="materiaPrima" class="form-label">Matéria-prima</label>
+                <input type="text" id="materiaPrima" class="form-control form-control-sm" placeholder="Ex: Milho, Cana, etc.">
               </div>
+
               <div class="mb-1">
-                <label for="labelX" class="form-label">Rótulo do Eixo X</label>
-                <input type="text" id="labelX" class="form-control form-control-sm" placeholder="Digite um rótulo">
+                <label for="precoEtanol" class="form-label">Preço do Etanol (R$/L)</label>
+                <input type="number" id="precoEtanol" class="form-control form-control-sm" placeholder="Digite o preço">
               </div>
+
               <div class="mb-1">
-                <label for="labelY" class="form-label">Rótulo do Eixo Y</label>
-                <input type="text" id="labelY" class="form-control form-control-sm" placeholder="Digite um rótulo">
+                <label for="custoProducao" class="form-label">Custo de Produção (R$)</label>
+                <input type="number" id="custoProducao" class="form-control form-control-sm" placeholder="Digite o custo">
               </div>
+
               <div class="mb-1">
-                <label for="valor" class="form-label">Adicionar Valor</label>
-                <input type="number" id="valor" class="form-control form-control-sm" placeholder="Digite um número">
+                <label for="eficiencia" class="form-label">Eficiência (L/Ton)</label>
+                <input type="number" id="eficiencia" class="form-control form-control-sm" placeholder="Digite a eficiência">
               </div>
-              <button class="btn btn-hover-highlight btn-sm w-100" onclick="atualizarGrafico()">Atualizar Gráfico</button>
+
+              <button class="btn btn-hover-highlight btn-sm w-100 mt-2" onclick="calcularViabilidade()">Calcular Viabilidade</button>
               <button class="btn btn-hover-highlight btn-sm w-100 mt-2" onclick="exportarGrafico()">Exportar como PNG</button>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-  
-  <script>
-    var ctx = document.getElementById('meuGrafico').getContext('2d');
-    var meuGrafico = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: [],
-        datasets: [{
-          label: 'Valores',
-          data: [],
-          backgroundColor: 'rgba(255, 193, 7, 0.6)',
-          borderColor: 'rgba(255, 193, 7, 1)',
-          borderWidth: 1
-        }]
+</div>
+
+<script>
+  var ctx = document.getElementById('meuGrafico').getContext('2d');
+  var meuGrafico = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Viabilidade Econômica',
+        data: [],
+        backgroundColor: 'rgba(255, 193, 7, 0.6)',
+        borderColor: 'rgba(255, 193, 7, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.6)' }, ticks: { color: '#ffffff', font: { size: 14, weight: 'bold' } } },
+        x: { grid: { color: 'rgba(255,255,255,0.6)' }, ticks: { color: '#ffffff', font: { size: 14, weight: 'bold' } } }
       },
-      options: {
-        responsive: true,
-        scales: {
-          y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.6)' }, ticks: { color: '#ffffff', font: { size: 14, weight: 'bold' } } },
-          x: { grid: { color: 'rgba(255,255,255,0.6)' }, ticks: { color: '#ffffff', font: { size: 14, weight: 'bold' } } }
-        },
-        plugins: {
-          legend: { labels: { color: '#ffffff', font: { size: 14, weight: 'bold' } } }
-        }
+      plugins: {
+        legend: { labels: { color: '#ffffff', font: { size: 14, weight: 'bold' } } }
       }
+    }
+  });
+
+  function calcularViabilidade() {
+    var materiaPrima = document.getElementById('materiaPrima').value || 'Desconhecida';
+    var precoEtanol = parseFloat(document.getElementById('precoEtanol').value);
+    var custoProducao = parseFloat(document.getElementById('custoProducao').value);
+    var eficiencia = parseFloat(document.getElementById('eficiencia').value);
+
+    if (isNaN(precoEtanol) || isNaN(custoProducao) || isNaN(eficiencia) || eficiencia <= 0) {
+      alert("Por favor, insira valores válidos para o cálculo.");
+      return;
+    }
+
+    fetch("{% url 'calcular_viabilidade' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCSRFToken()
+      },
+      body: JSON.stringify({
+        materiaPrima: materiaPrima,
+        precoEtanol: precoEtanol,
+        custoProducao: custoProducao,
+        eficiencia: eficiencia
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        alert("Erro: " + data.error);
+      } else {
+        meuGrafico.data.labels.push(data.materiaPrima);
+        meuGrafico.data.datasets[0].data.push(data.viabilidade);
+        meuGrafico.update();
+      }
+    })
+    .catch(error => {
+      console.error("Erro na requisição:", error);
     });
-  
-    function atualizarGrafico() {
-      var labelX = document.getElementById('labelX').value || 'Sem Nome';
-      var valor = parseFloat(document.getElementById('valor').value) || 0;
-      
-      meuGrafico.data.labels.push(labelX);
-      meuGrafico.data.datasets[0].data.push(valor);
-      meuGrafico.update();
-    }
-  
-    function exportarGrafico() {
-      var canvas = document.getElementById('meuGrafico');
-      var link = document.createElement('a');
-      link.href = canvas.toDataURL('image/png');
-      link.download = 'grafico.png';
-      link.click();
-    }
-  </script>
+  }
+
+  function getCSRFToken() {
+    return document.cookie.split('; ')
+      .find(row => row.startsWith('csrftoken='))
+      ?.split('=')[1];
+  }
+
+  function exportarGrafico() {
+    var canvas = document.getElementById('meuGrafico');
+    var link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
+    link.download = 'grafico_viabilidade.png';
+    link.click();
+  }
+</script>
 
 
-  {% else %}
-
-
+{% else %}
+  <p class="text-center text-danger">Você precisa estar autenticado para acessar os simuladores.</p>
 {% endif %}
-
 
 {% endblock %}
