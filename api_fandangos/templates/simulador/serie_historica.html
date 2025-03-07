@@ -1,0 +1,91 @@
+{% extends 'partials/base.html' %}
+{% block title %} Página Inicial de Simuladores {% endblock %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+{% if user.is_authenticated %}
+
+<div class="container mt-4 text-center">
+    
+    <h1 style="color: black;">Série Histórica de Preços</h1>
+
+    <!-- Exibição de erro (se houver) -->
+    {% if error %}
+        <div style="color: red;">
+            <p>{{ error }}</p>
+        </div>
+    {% endif %}
+
+    <!-- Gráfico de Preço de Etanol -->
+    <div style="padding: 20px;">
+        <h2 style="color: black;">Histórico de Preços de Etanol</h2>
+        <canvas id="graficoEtanol"></canvas>
+    </div>
+
+
+    <!-- Gráfico de Preço de Milho -->
+    <div style="padding: 20px;">
+        <h2 style="color: black;">Histórico de Preços de Milho</h2>
+        <canvas id="graficoMilho"></canvas>
+    </div>
+</div>
+
+<script>
+    // Gráfico para Etanol
+    var ctxEtanol = document.getElementById('graficoEtanol').getContext('2d');
+    var graficoEtanol = new Chart(ctxEtanol, {
+        type: 'line',
+        data: {
+            labels: {{ datas_etanol|safe }},
+            datasets: [{
+                label: 'Preço do Etanol (R$)',
+                data: {{ precos_etanol|safe }},
+                borderColor: 'rgba(75, 192, 192, 1)',
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { 
+                    title: { display: true, text: 'Data' }
+                },
+                y: { 
+                    title: { display: true, text: 'Preço (R$)' }
+                }
+            }
+        }
+    });
+
+    // Gráfico para Milho
+    var ctxMilho = document.getElementById('graficoMilho').getContext('2d');
+    var graficoMilho = new Chart(ctxMilho, {
+        type: 'line',
+        data: {
+            labels: {{ datas_milho|safe }},
+            datasets: [{
+                label: 'Preço do Milho (R$)',
+                data: {{ precos_milho|safe }},
+                borderColor: 'rgba(255, 159, 64, 1)',
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { 
+                    title: { display: true, text: 'Data' }
+                },
+                y: { 
+                    title: { display: true, text: 'Preço (R$)' }
+                }
+            }
+        }
+    });
+</script>
+
+    
+
+{% endif %}
+{% endblock %}

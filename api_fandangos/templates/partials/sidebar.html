@@ -2,8 +2,6 @@
 
 <div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark align-items-center sidebar" style="width: 280px;">
 
-  <!-- style="width: 280px; background-color: #094020;"> -->
-  
   <!-- Logo centralizado -->
   <a class="navbar-brand d-flex justify-content-center mb-3" href="{% url 'estatisticas-index' %}">
     <img src="{% static '/fandangos.jpg' %}" width="100" height="50" class="d-block mx-auto" />
@@ -11,11 +9,9 @@
 
   <hr class="w-100">
 
+  <!-- Menu de navegação -->
   <ul class="nav nav-pills flex-column mb-auto w-100">
-
-    <!-- Conteúdo para usuários autenticados -->
     {% if user.is_authenticated %}
-
     <li class="nav-item">
       <a href="{% url 'estatisticas-index' %}" class="nav-link active" aria-current="page">
         <svg class="bi pe-none me-2" width="16" height="16"><use xlink:href="#home"></use></svg>
@@ -29,7 +25,6 @@
       </a>
     </li>
     {% endif %}
-
     <li>
       <a href="#" class="nav-link text-white">
         <svg class="bi pe-none me-2" width="16" height="16"><use xlink:href="#table"></use></svg>
@@ -52,29 +47,37 @@
 
   <hr class="w-100">
 
+  <!-- Widgets Produtos Cepea (adicionados aqui) -->
+  <div class="widgets-container mt-4 w-100 align-items-center">
+    <div style="flex: 1; max-width: 100%; margin-bottom: 10px; align-items-center">
+<!-- Widgets Produtos Cepea - www.cepea.esalq.com.br/br/widget.aspx -->
+<script type="text/javascript" src="https://www.cepea.esalq.usp.br/br/widgetproduto.js.php?fonte=arial&tamanho=10&largura=230px&corfundo=949D6A&cortexto=ffffff&corlinha=949D6A&id_indicador%5B%5D=103"></script>    
 
+    </div>
+    
+  <div style="flex: 1; max-width: 100%; align-items-center">
+<!-- Widgets Produtos Cepea - www.cepea.esalq.com.br/br/widget.aspx -->
+<script type="text/javascript" src="https://www.cepea.esalq.usp.br/br/widgetproduto.js.php?fonte=arial&tamanho=10&largura=230px&corfundo=949D6A&cortexto=ffffff&corlinha=949D6A&id_indicador%5B%5D=77"></script>    
+</div>
+  </div>
+
+  <hr class="w-100">
+
+  <!-- Dropdown de usuário -->
   <div class="dropdown w-100">
-
     {% if user.is_authenticated %}
-
     <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
       <img src="{{ user.profile.image.url }}" alt="" width="32" height="32" class="rounded-circle me-2">
       <strong> {{ user.username }} </strong>
     </a>
-
-    
-
     {% else %}
-
     <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
       <strong>Login/Registrar</strong>
     </a>
-
     {% endif %}
 
     <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
       {% if user.is_authenticated %}
-
       <li><a class="dropdown-item" href="#">New project...</a></li>
       <li><a class="dropdown-item" href="#">Settings</a></li>
       <li><a class="dropdown-item" href="{% url 'user-profile' %}">Perfil</a></li>
@@ -83,19 +86,13 @@
         <form action="{% url 'user-logout' %}" method="post" class="w-100">
           {% csrf_token %}
           <button type="submit" class="btn w-100 text-start fw-bold text-light" style="background-color: #3a3a3a; border: none;">Logout</button>
-      </form>      
-    </li>
-
+        </form>
+      </li>
       {% else %}
-
       <li><a class="dropdown-item" href="{% url 'user-login' %}">Login</a></li>
       <li><a class="dropdown-item" href="{% url 'user-register' %}">Registrar...</a></li>
-
-
       {% endif %}
-
     </ul>
-
-
   </div>
+
 </div>
