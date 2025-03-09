@@ -5,6 +5,11 @@ from django.contrib import messages
 
 # Create your views here.
 
+def home_redirect(request):
+    if request.user.is_authenticated:
+        return redirect('estatisticas-index')  # Substitua pelo nome correto da URL
+    return redirect('user-login')  # Se não estiver logado, redireciona para login
+
 def register(request):
     
     if request.method == 'POST':
