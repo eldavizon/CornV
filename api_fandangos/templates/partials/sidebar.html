@@ -14,32 +14,40 @@
     {% if user.is_authenticated %}
     <li class="nav-item">
       <a href="{% url 'estatisticas-index' %}" class="nav-link active" aria-current="page">
-        <svg class="bi pe-none me-2" width="16" height="16"><use xlink:href="#home"></use></svg>
         Home
       </a>
     </li>
-    <li>
-      <a href="{% url 'simulador-index' %}" class="nav-link text-white">
-        <svg class="bi pe-none me-2" width="16" height="16"><use xlink:href="#speedometer2"></use></svg>
-        Simuladores
+    <!-- Item colapsável: Simuladores -->
+    <li class="nav-item">
+      <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#simuladoresCollapse" role="button" aria-expanded="false" aria-controls="simuladoresCollapse">
+        <span>
+          Simuladores
+        </span>
+        <span>▼</span> <!-- Ícone de seta -->
       </a>
+      <div class="collapse ps-3" id="simuladoresCollapse">
+        <a href="{% url 'simulador-index' %}" class="nav-link text-white" style="background-color: transparent; font-size: 0.9rem; padding-left: 20px;">
+          Simulador principal
+        </a>
+        <a href="{% url 'obter_dados_historico' %}" class="nav-link text-white" style="background-color: transparent; font-size: 0.9rem; padding-left: 20px;">
+          Série histórica
+        </a>
+        <a href="#" class="nav-link text-white" style="background-color: transparent; font-size: 0.9rem; padding-left: 20px;">Simulador 3</a>
+      </div>
     </li>
     {% endif %}
     <li>
       <a href="#" class="nav-link text-white">
-        <svg class="bi pe-none me-2" width="16" height="16"><use xlink:href="#table"></use></svg>
         Relatórios
       </a>
     </li>
     <li>
       <a href="#" class="nav-link text-white">
-        <svg class="bi pe-none me-2" width="16" height="16"><use xlink:href="#grid"></use></svg>
         Configurações
       </a>
     </li>
     <li>
       <a href="#" class="nav-link text-white">
-        <svg class="bi pe-none me-2" width="16" height="16"><use xlink:href="#people-circle"></use></svg>
         Sobre
       </a>
     </li>
@@ -47,21 +55,8 @@
 
   <hr class="w-100">
   
-  <!-- Widgets Produtos Cepea (adicionados aqui) -->
-  <div class="widgets-container mt-4 w-100 align-items-center">
-    <div style="flex: 1; max-width: 100%; margin-bottom: 10px; align-items-center">
-<!-- Widgets Produtos Cepea - www.cepea.esalq.com.br/br/widget.aspx -->
-<script type="text/javascript" src="https://www.cepea.esalq.usp.br/br/widgetproduto.js.php?fonte=arial&tamanho=10&largura=230px&corfundo=76A500&cortexto=ffffff&corlinha=76A500&id_indicador%5B%5D=103"></script>    
 
-    </div>
-    
-  <div style="flex: 1; max-width: 100%; align-items-center">
-<!-- Widgets Produtos Cepea - www.cepea.esalq.com.br/br/widget.aspx -->
-<script type="text/javascript" src="https://www.cepea.esalq.usp.br/br/widgetproduto.js.php?fonte=arial&tamanho=10&largura=230px&corfundo=76A500&cortexto=ffffff&corlinha=76A500&id_indicador%5B%5D=77"></script>    
-</div>
-  </div>
 
-  <hr class="w-100">
 
   <!-- Dropdown de usuário -->
   <div class="dropdown w-100">

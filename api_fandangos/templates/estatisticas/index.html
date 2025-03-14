@@ -21,96 +21,73 @@
     <div class="row my-5">
         <div class="col-md-6">
             <div class="bg-white">
-                <canvas id="myChart1" width="400" height="300"></canvas>
-                <script>
-                    // Paleta de cores fixa
-                    const paletaCores = ["#513C2C", "#D0D38F", "#F6CA83", "#ADB993", "#949D6A"];
-                
-                    // Função para atribuir cores, repetindo se necessário
-                    function obterCoresFixas(totalCores) {
-                        let cores = [];
-                        for (let i = 0; i < totalCores; i++) {
-                            cores.push(paletaCores[i % paletaCores.length]);
-                        }
-                        return cores;
-                    }
-                
-                    // Obter quantidade de produtos retirados
-                    var totalProdutos = {{ retiradas|length }};
-                    var coresContraste = obterCoresFixas(totalProdutos);
-                
-                    var ctx1 = document.getElementById('myChart1').getContext('2d');
-                    var myChart1 = new Chart(ctx1, {
-                        type: 'pie',
-                        data: {
-                            labels: [{% for retirada in retiradas_agrupadas %} '{{retirada.produto__nome}}', {% endfor %}],
-                            datasets: [{
-                                label: 'Produtos Químicos Retirados',
-                                data: [{% for produto in retiradas_agrupadas %} {{produto.total_retirado}}, {% endfor %}],
-                                backgroundColor: coresContraste,
-                                borderColor: coresContraste,
-                                borderWidth: 1
-                            }]
-                        }
-                    });
-                </script>
-                
+                <canvas id="graficoEtanol" width="400" height="300"></canvas>
             </div>
         </div>
         <div class="col-md-6">
             <div class="bg-white">
-                <canvas id="myChart" width="400" height="300"></canvas>
-
-                <script>
-                    // Paleta de cores fixa com nome alterado
-                    const coresPaleta = ["#513C2C", "#D0D38F", "#F6CA83", "#ADB993", "#949D6A"];
-                
-                    // Função para atribuir cores, repetindo se necessário
-                    function obterCoresFixas(totalCores) {
-                        let cores = [];
-                        for (let i = 0; i < totalCores; i++) {
-                            cores.push(coresPaleta[i % coresPaleta.length]);
-                        }
-                        return cores;
-                    }
-                
-                    // Obtém o número total de produtos
-                    var totalProdutos = {{ produtos|length }};
-                    var coresContraste = obterCoresFixas(totalProdutos);
-                
-                    // Cria o gráfico somente depois que o DOM estiver pronto
-                    window.onload = function() {
-                        var ctx = document.getElementById('myChart').getContext('2d');
-                        var myChart = new Chart(ctx, {
-                            type: 'bar',
-                            data: {
-                                labels: [{% for produto in produtos %} '{{ produto.nome }}', {% endfor %}],
-                                datasets: [{
-                                    label: 'Quantidade em estoque',
-                                    data: [{% for produto in produtos %} '{{ produto.quantidade }}', {% endfor %}],
-                                    backgroundColor: coresContraste, // Aplica a paleta de cores fixa
-                                    borderColor: coresContraste, // Mantém bordas da mesma cor
-                                    borderWidth: 1
-                                }]
-                            },
-                            options: {
-                                scales: {
-                                    y: {
-                                        beginAtZero: true
-                                    }
-                                }
-                            }
-                        });
-                    };
-                </script>
-                
-                
-
-                
+                <canvas id="graficoMilho" width="400" height="300"></canvas>       
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    // Gráfico para Etanol
+    var ctxEtanol = document.getElementById('graficoEtanol').getContext('2d');
+    var graficoEtanol = new Chart(ctxEtanol, {
+        type: 'line',
+        data: {
+            labels: {{ datas_etanol|safe }},
+            datasets: [{
+                label: 'Preço do Etanol (R$/L)',
+                // Formatar os preços para 3 casas decimais usando toFixed(3)
+                data: {{ precos_etanol|safe }}.map(preco => preco.toFixed(4)), // Aqui é onde formatamos os preços
+                borderColor: 'rgba(75, 192, 192, 1)',
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { 
+                    title: { display: true, text: 'Data' }
+                },
+                y: { 
+                    title: { display: true, text: 'Preço (R$)' }
+                }
+            }
+        }
+    });
+
+    // Gráfico para Milho
+    var ctxMilho = document.getElementById('graficoMilho').getContext('2d');
+    var graficoMilho = new Chart(ctxMilho, {
+        type: 'line',
+        data: {
+            labels: {{ datas_milho|safe }},
+            datasets: [{
+                label: 'Preço do Milho (R$/60kg)',
+                // Formatar os preços para 3 casas decimais usando toFixed(3)
+                data: {{ precos_milho|safe }}.map(preco => preco.toFixed(4)), // Aqui é onde formatamos os preços
+                borderColor: 'rgba(255, 159, 64, 1)',
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { 
+                    title: { display: true, text: 'Data' }
+                },
+                y: { 
+                    title: { display: true, text: 'Preço (R$)' }
+                }
+            }
+        }
+    });
+</script>
+
 
 {% else %}
 

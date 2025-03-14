@@ -3,11 +3,11 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header bg-dark text-white">
-                    Information
+                    Informações
                 </div>
                 <div class="card-body">
                     <marquee behavior="" direction="">
-                        <h3 class="my-4">This is the Information</h3>
+                        <h3 class="my-4">Preço do etanol sobe 0,10R$     Preço do milho mais baixo dos ultimos 3 meses</h3>
                     </marquee>
                 </div>
             </div>
@@ -15,14 +15,14 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header bg-dark text-white">
-                    Statistics
+                    Mais relevantes
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-4">
                             <a class="text-decoration-none text-dark" href="{% url 'estatisticas-staff' %}">
                                 <div class="card my-card shadow text-center p-3">
-                                    <h4>Staff <i class="fas fa-users"></i></h4>
+                                    <h4>Usuários <i class="fas fa-users"></i></h4>
                                     <h3>{{ workers_count }}</h3>
                                 </div>
                             </a>
@@ -30,7 +30,7 @@
                         <div class="col-md-4">
                             <a class="text-decoration-none text-dark" href="{% url 'estatisticas-produtos' %}">
                                 <div class="card my-card shadow text-center p-3">
-                                    <h4>Products <i class="fas fa-box"></i></h4>
+                                    <h4>Simulações recentes <i class="fas fa-box"></i></h4>
                                     <h3>{{ produtos_count }}</h3>
                                 </div>
                             </a>
@@ -38,7 +38,7 @@
                         <div class="col-md-4">
                             <a class="text-decoration-none text-dark" href="{% url 'estatisticas-retirada' %}">
                                 <div class="card my-card shadow text-center p-3">
-                                    <h4>Retirados <i class="fas fa-shipping-fast"></i></h4>
+                                    <h4> Hoje o milho está em alta! <i class="fas fa-shipping-fast"></i></h4>
                                     <h3>4</h3>
                                 </div>
                             </a>

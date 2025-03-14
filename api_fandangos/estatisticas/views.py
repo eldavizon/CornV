@@ -5,7 +5,9 @@ from .models import Produto, Retirada
 from .forms import ProdutoForm, RetiradaForm
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.db.models import Sum
+from simulador.models import HistoricoPrecoEtanol, HistoricoPrecoMilho
+from django.db.models import Avg
+from django.db.models.functions import TruncMonth
 
 
 # Create your views here.
@@ -13,23 +15,38 @@ from django.db.models import Sum
 @login_required(login_url='user-login', ) # está configurado nas settings > login_url.
 def index(request):
     
-    # Dados de itens retirados
-    retiradas = Retirada.objects.all()
-    
-    # Agrupa retiradas por produto e soma as quantidades
-    retiradas_agrupadas = (
-        Retirada.objects.values("produto__nome")
-        .annotate(total_retirado=Sum("quantidade_retirada"))
-        .order_by("produto__nome")  # Opcional: ordena os resultados
+    # Filtrar os registros a cada 6 meses, utilizando o mês truncado
+    historico_etanol = (
+        HistoricoPrecoEtanol.objects
+        .annotate(mes=TruncMonth('data'))  # Trunca a data para o primeiro dia do mês
+        .filter(mes__month__in=[1, 4, 7, 10])  # Filtra apenas os meses de janeiro e julho (a cada 6 meses)
+        .values('mes')
+        .annotate(preco_medio=Avg('preco_etanol'))  # Média do preço de etanol por período de 6 meses
+        .order_by('mes')
     )
-    
-    #dados de produtos
-    produtos = Produto.objects.all()
-    
-    #dados de profissionais
-    workers = User.objects.all()
+
+    historico_milho = (
+        HistoricoPrecoMilho.objects
+        .annotate(mes=TruncMonth('data'))
+        .filter(mes__month__in=[1, 4, 7, 10])  # Filtra apenas os meses de janeiro e julho (a cada 6 meses)
+        .values('mes')
+        .annotate(preco_medio=Avg('preco_milho'))
+        .order_by('mes')
+    )
+
+    # Preparar os dados para os gráficos
+    datas_etanol = [registro['mes'].strftime("%Y-%m-%d") for registro in historico_etanol]
+    precos_etanol = [float(registro['preco_medio']) for registro in historico_etanol]
+
+    datas_milho = [registro['mes'].strftime("%Y-%m-%d") for registro in historico_milho]
+    precos_milho = [float(registro['preco_medio']) for registro in historico_milho]
 
     
+    #dados de models de produto, workers e retiradas
+    produtos = Produto.objects.all()
+    workers = User.objects.all()
+    retiradas = Retirada.objects.all()
+
     
     #Soma as quantidades de produtos, usuarios e retiradas para exibir
     workers_count = workers.count()
@@ -53,13 +70,14 @@ def index(request):
         
     
     context = {
-        'retiradas':retiradas,
-        'retiradas_agrupadas' : retiradas_agrupadas,
         'form': form,
-        'produtos': produtos,
         'workers_count' : workers_count,
         'produtos_count' : produtos_count,
         'retiradas_count' :  retiradas_count,
+        "datas_etanol": datas_etanol,
+        "precos_etanol": precos_etanol,
+        "datas_milho": datas_milho,
+        "precos_milho": precos_milho,
     }
     
     return render(request, 'estatisticas/index.html', context)
