@@ -20,14 +20,22 @@ def calcular_viabilidade(request):
         try:
             data = json.loads(request.body)
             materia_prima = data.get("materiaPrima", "Desconhecida")
-            preco_etanol = float(data.get("precoEtanol", 0))
-            custo_producao = float(data.get("custoProducao", 0))
-            eficiencia = float(data.get("eficiencia", 1))  # Evita divisão por zero
+            volume_etanol = float(data.get("volumeEtanol", 0) or 0)
+            custo_producao = float(data.get("custoProducao", 0) or 0)
+            massa_MP = float(data.get("massaMP", 0) or 0)
+            eficiencia = float(data.get("eficiencia", 1) or 1)  # Evita divisão por zero
 
-            if eficiencia <= 0:
-                return JsonResponse({"error": "Eficiência deve ser maior que zero."}, status=400)
 
-            viabilidade = (preco_etanol * custo_producao) / eficiencia
+            print(f'''data: {data}\n materia prima: {materia_prima} ;volume etanol: {volume_etanol} \n 
+                  custo: {custo_producao} massa: {massa_MP} e eficiencia: {eficiencia}
+                  
+                  ''')
+
+            if custo_producao <= 0 or volume_etanol <= 0:
+                return JsonResponse({"error": "Custo de produção e volume de etanol devem ser maiores que zero."}, status=400)
+
+
+            viabilidade = ((massa_MP * 0.63 * eficiencia) / (custo_producao * volume_etanol))*100
 
             return JsonResponse({
                 "materiaPrima": materia_prima,

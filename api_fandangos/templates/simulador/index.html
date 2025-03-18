@@ -34,8 +34,13 @@
             </div>
 
             <div class="mb-1">
-              <label for="precoEtanol" class="form-label">Preço do Etanol (R$/L)</label>
-              <input type="number" id="precoEtanol" class="form-control form-control-sm" placeholder="Digite o preço">
+              <label for="massaMP" class="form-label">Massa</label>
+              <input type="text" id="massaMP" class="form-control form-control-sm" placeholder="Massa em kg.">
+            </div>
+
+            <div class="mb-1">
+              <label for="volumeEtanol" class="form-label">Volume do Etanol (R$/L)</label>
+              <input type="number" id="volumeEtanol" class="form-control form-control-sm" placeholder="Digite o preço">
             </div>
 
             <div class="mb-1">
@@ -58,41 +63,51 @@
   </div>
 </div>
 
-
 <script>
   var ctx = document.getElementById('meuGrafico').getContext('2d');
   var meuGrafico = new Chart(ctx, {
-    type: 'bar',
+    type: 'line',
     data: {
-      labels: [],
+      labels: [], // Labels dinâmicos (serão preenchidos pelo backend)
       datasets: [{
         label: 'Viabilidade Econômica',
-        data: [],
+        data: [], // Dados dinâmicos (serão preenchidos pelo backend)
         backgroundColor: 'rgba(255, 193, 7, 0.6)',
         borderColor: 'rgba(255, 193, 7, 1)',
-        borderWidth: 1
+        borderWidth: 1,
+        fill:false
       }]
     },
     options: {
       responsive: true,
-      scales: {
-        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.6)' }, ticks: { color: '#ffffff', font: { size: 14, weight: 'bold' } } },
-        x: { grid: { color: 'rgba(255,255,255,0.6)' }, ticks: { color: '#ffffff', font: { size: 14, weight: 'bold' } } }
-      },
       plugins: {
         legend: { labels: { color: '#ffffff', font: { size: 14, weight: 'bold' } } }
+      }
+    },
+    scales: {
+      y: {
+        title: {
+          display: true,
+          text: 'Value'
+        },
+        min: 0,
+        max: 1,
+        ticks: {
+          // forces step size to be 50 units
+          stepSize: 0.1
+        }
       }
     }
   });
 
   function calcularViabilidade() {
-    var materiaPrima = document.getElementById('materiaPrima').value || 'Desconhecida';
-    var precoEtanol = parseFloat(document.getElementById('precoEtanol').value);
-    var custoProducao = parseFloat(document.getElementById('custoProducao').value);
-    var eficiencia = parseFloat(document.getElementById('eficiencia').value);
+    var volumeEtanol = parseFloat(document.getElementById('volumeEtanol').value) || 0;
+    var custoProducao = parseFloat(document.getElementById('custoProducao').value) || 0;
+    var eficiencia = parseFloat(document.getElementById('eficiencia').value) || 1;
+    var massaMP = parseFloat(document.getElementById('massaMP').value) || 0;
 
-    if (isNaN(precoEtanol) || isNaN(custoProducao) || isNaN(eficiencia) || eficiencia <= 0) {
-      alert("Por favor, insira valores válidos para o cálculo.");
+    if (custoProducao === 0 || volumeEtanol === 0) {
+      alert("Custo de produção e volume de etanol devem ser maiores que zero.");
       return;
     }
 
@@ -103,10 +118,11 @@
         "X-CSRFToken": getCSRFToken()
       },
       body: JSON.stringify({
-        materiaPrima: materiaPrima,
-        precoEtanol: precoEtanol,
+        materiaPrima: document.getElementById('materiaPrima').value,
+        volumeEtanol: volumeEtanol,
         custoProducao: custoProducao,
-        eficiencia: eficiencia
+        eficiencia: eficiencia,
+        massaMP: massaMP
       })
     })
     .then(response => response.json())
@@ -114,8 +130,10 @@
       if (data.error) {
         alert("Erro: " + data.error);
       } else {
-        meuGrafico.data.labels.push(data.materiaPrima);
-        meuGrafico.data.datasets[0].data.push(data.viabilidade);
+        let materiaPrimaLabel = typeof data.materiaPrima === "object" ? JSON.stringify(data.materiaPrima) : data.materiaPrima;
+        
+        meuGrafico.data.labels.push(materiaPrimaLabel);
+        meuGrafico.data.datasets[0].data.push(Math.min(Math.max(parseFloat(data.viabilidade) || 0, 0), 1)); // Garante que o valor esteja entre 0 e 1
         meuGrafico.update();
       }
     })
@@ -138,6 +156,8 @@
     link.click();
   }
 </script>
+
+
 
 
 {% else %}
