@@ -7,22 +7,29 @@
 {% if user.is_authenticated %}
 
 <div class="container mt-4 text-center">
-    
     <h1 style="color: black;">Série Histórica de Preços</h1>
 
-    <!-- Exibição de erro (se houver) -->
     {% if error %}
         <div style="color: red;">
             <p>{{ error }}</p>
         </div>
     {% endif %}
 
+    <!-- Seletor de agregação de dados -->
+    <div class="mb-3 p-3">
+        <select id="agregacao" class="form-select p-2" onchange="atualizarGraficos()">
+            <option value="semanal">Semanal</option>
+            <option value="mensal">Mensal</option>
+            <option value="semestral">Semestral</option>
+        </select>
+        <label style="color: black;" for="agregacao" class="form-label p-2">Agrupar por:</label>
+    </div>
+
     <!-- Gráfico de Preço de Etanol -->
     <div style="padding: 20px;">
         <h2 style="color: black;">Histórico de Preços de Etanol</h2>
         <canvas id="graficoEtanol"></canvas>
     </div>
-
 
     <!-- Gráfico de Preço de Milho -->
     <div style="padding: 20px;">
@@ -32,15 +39,60 @@
 </div>
 
 <script>
-    // Gráfico para Etanol
+    let datasEtanol = {{ datas_etanol|safe }};
+    let precosEtanol = {{ precos_etanol|safe }};
+    let datasMilho = {{ datas_milho|safe }};
+    let precosMilho = {{ precos_milho|safe }};
+
+    function agregarDados(dates, prices, type) {
+        let aggregatedData = {};
+        
+        dates.forEach((date, index) => {
+            let data = new Date(date);
+            let key;
+            if (type === "mensal") {
+                key = `${data.getFullYear()}-${(data.getMonth() + 1).toString().padStart(2, '0')}`;
+            } else if (type === "semestral") {
+                key = `${data.getFullYear()}-${Math.ceil((data.getMonth() + 1) / 6)}`;
+            } else {
+                key = date; // Semanal mantém a granularidade original
+            }
+
+            if (!aggregatedData[key]) {
+                aggregatedData[key] = { total: 0, count: 0 };
+            }
+            aggregatedData[key].total += parseFloat(prices[index]);
+            aggregatedData[key].count++;
+        });
+
+        let aggregatedDates = Object.keys(aggregatedData).sort();
+        let aggregatedPrices = aggregatedDates.map(key => (aggregatedData[key].total / aggregatedData[key].count).toFixed(2));
+
+        return { labels: aggregatedDates, data: aggregatedPrices };
+    }
+
+    function atualizarGraficos() {
+        let tipo = document.getElementById("agregacao").value;
+        let etanolData = agregarDados(datasEtanol, precosEtanol, tipo);
+        let milhoData = agregarDados(datasMilho, precosMilho, tipo);
+
+        graficoEtanol.data.labels = etanolData.labels;
+        graficoEtanol.data.datasets[0].data = etanolData.data;
+        graficoEtanol.update();
+
+        graficoMilho.data.labels = milhoData.labels;
+        graficoMilho.data.datasets[0].data = milhoData.data;
+        graficoMilho.update();
+    }
+
     var ctxEtanol = document.getElementById('graficoEtanol').getContext('2d');
     var graficoEtanol = new Chart(ctxEtanol, {
         type: 'line',
         data: {
-            labels: {{ datas_etanol|safe }},
+            labels: datasEtanol,
             datasets: [{
                 label: 'Preço do Etanol (R$)',
-                data: {{ precos_etanol|safe }},
+                data: precosEtanol,
                 borderColor: 'rgba(75, 192, 192, 1)',
                 fill: false
             }]
@@ -48,25 +100,20 @@
         options: {
             responsive: true,
             scales: {
-                x: { 
-                    title: { display: true, text: 'Data' }
-                },
-                y: { 
-                    title: { display: true, text: 'Preço (R$)' }
-                }
+                x: { title: { display: true, text: 'Data' } },
+                y: { title: { display: true, text: 'Preço (R$)' } }
             }
         }
     });
 
-    // Gráfico para Milho
     var ctxMilho = document.getElementById('graficoMilho').getContext('2d');
     var graficoMilho = new Chart(ctxMilho, {
         type: 'line',
         data: {
-            labels: {{ datas_milho|safe }},
+            labels: datasMilho,
             datasets: [{
                 label: 'Preço do Milho (R$)',
-                data: {{ precos_milho|safe }},
+                data: precosMilho,
                 borderColor: 'rgba(255, 159, 64, 1)',
                 fill: false
             }]
@@ -74,18 +121,12 @@
         options: {
             responsive: true,
             scales: {
-                x: { 
-                    title: { display: true, text: 'Data' }
-                },
-                y: { 
-                    title: { display: true, text: 'Preço (R$)' }
-                }
+                x: { title: { display: true, text: 'Data' } },
+                y: { title: { display: true, text: 'Preço (R$)' } }
             }
         }
     });
 </script>
-
-    
 
 {% endif %}
 {% endblock %}
