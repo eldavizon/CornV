@@ -2,99 +2,70 @@
 {% block title %} CornV{% endblock %}
 {% load crispy_forms_tags %}
 
-<!--Block de gráficos-->
-
-
 {% block content%} 
 
-{% if user.is_authenticated and user.is_staff %}  <!-- user.is_superuser também é um argumento válido. -->
+{% if user.is_authenticated and user.is_staff %}
 
+<!-- Topside - widgets de informações -->
+{% include 'partials/topnav.html' %}
+<!-- End Topside -->
 
- <!--Topside - widgets de informações-->
-
- {% include 'partials/topnav.html' %}
-
-
- <!--End Topside-->
-
-<div class="container">
-    <div class="row my-5">
-        <div class="col-md-6">
-            <div class="bg-white">
-                <canvas id="graficoEtanol" width="400" height="300"></canvas>
+<div class="container-fluid">
+    <div class="row my-4">
+        <div class="col-12 col-md-6">
+            <div class="bg-white p-3 rounded shadow">
+                <canvas id="graficoEtanol"></canvas>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="bg-white">
-                <canvas id="graficoMilho" width="400" height="300"></canvas>       
+        <div class="col-12 col-md-6">
+            <div class="bg-white p-3 rounded shadow">
+                <canvas id="graficoMilho"></canvas>       
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Gráfico para Etanol
-    var ctxEtanol = document.getElementById('graficoEtanol').getContext('2d');
-    var graficoEtanol = new Chart(ctxEtanol, {
-        type: 'line',
-        data: {
-            labels: {{ datas_etanol|safe }},
-            datasets: [{
-                label: 'Preço do Etanol (R$/L)',
-                // Formatar os preços para 3 casas decimais usando toFixed(3)
-                data: {{ precos_etanol|safe }}.map(preco => preco.toFixed(4)), // Aqui é onde formatamos os preços
-                borderColor: 'rgba(75, 192, 192, 1)',
-                fill: false
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: { 
-                    title: { display: true, text: 'Data' }
+    function createChart(canvasId, label, labelsData, dataValues, borderColor) {
+        var ctx = document.getElementById(canvasId).getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labelsData,
+                datasets: [{
+                    label: label,
+                    data: dataValues.map(preco => parseFloat(preco).toFixed(4)), // Formata os preços
+                    borderColor: borderColor,
+                    backgroundColor: borderColor.replace("1)", "0.2)"), // Cor com transparência
+                    fill: true
+                }]
+            },
+            options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: 'Data' } },
+                        y: { title: { display: true, text: 'Preço (R$)' } }
+                    },
+                    elements: { line: { tension: 0.3 } }
                 },
-                y: { 
-                    title: { display: true, text: 'Preço (R$)' }
-                }
-            }
-        }
-    });
+                plugins: [{
+                    beforeDraw: function(chart) {
+                        chart.canvas.parentNode.style.height = '400px'; // Define a altura mínima
+                    }
+}]
+        });
+    }
 
-    // Gráfico para Milho
-    var ctxMilho = document.getElementById('graficoMilho').getContext('2d');
-    var graficoMilho = new Chart(ctxMilho, {
-        type: 'line',
-        data: {
-            labels: {{ datas_milho|safe }},
-            datasets: [{
-                label: 'Preço do Milho (R$/60kg)',
-                // Formatar os preços para 3 casas decimais usando toFixed(3)
-                data: {{ precos_milho|safe }}.map(preco => preco.toFixed(4)), // Aqui é onde formatamos os preços
-                borderColor: 'rgba(255, 159, 64, 1)',
-                fill: false
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: { 
-                    title: { display: true, text: 'Data' }
-                },
-                y: { 
-                    title: { display: true, text: 'Preço (R$)' }
-                }
-            }
-        }
+    // Criar gráficos dinamicamente
+    document.addEventListener("DOMContentLoaded", function () {
+        createChart('graficoEtanol', 'Preço do Etanol (R$/L)', {{ datas_etanol|safe }}, {{ precos_etanol|safe }}, 'rgba(75, 192, 192, 1)');
+        createChart('graficoMilho', 'Preço do Milho (R$/60kg)', {{ datas_milho|safe }}, {{ precos_milho|safe }}, 'rgba(255, 159, 64, 1)');
     });
 </script>
 
-
 {% else %}
-
 {% include 'estatisticas/staff_index.html' %}
-
-
 {% endif %}
-
 
 {% endblock %}
