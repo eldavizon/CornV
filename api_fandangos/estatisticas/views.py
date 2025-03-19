@@ -40,19 +40,7 @@ def index(request):
 
     datas_milho = [registro['mes'].strftime("%Y-%m-%d") for registro in historico_milho]
     precos_milho = [float(registro['preco_medio']) for registro in historico_milho]
-
-    
-    #dados de models de produto, workers e retiradas
-    produtos = Produto.objects.all()
-    workers = User.objects.all()
-    retiradas = Retirada.objects.all()
-
-    
-    #Soma as quantidades de produtos, usuarios e retiradas para exibir
-    workers_count = workers.count()
-    produtos_count = produtos.count()
-    retiradas_count = retiradas.count()
-    
+        
     
     if request.method == "POST":
         form = RetiradaForm(request.POST)
@@ -71,9 +59,6 @@ def index(request):
     
     context = {
         'form': form,
-        'workers_count' : workers_count,
-        'produtos_count' : produtos_count,
-        'retiradas_count' :  retiradas_count,
         "datas_etanol": datas_etanol,
         "precos_etanol": precos_etanol,
         "datas_milho": datas_milho,
