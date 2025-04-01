@@ -28,11 +28,10 @@ urlpatterns = [
     
     path('register/', user_view.register, name='user-register'),
     path('login/', auth_views.LoginView.as_view(template_name='user/login.html'), name='user-login'),
-    path('logout/', auth_views.LogoutView.as_view(template_name='user/logout.html'), name='user-logout'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='user-login'), name='user-logout'),
     path('profile/', user_view.profile, name='user-profile'),
     path('profile/update/', user_view.profile_update, name='user-profile-update'),
    
-   
-    path('estatisticas/', include('estatisticas.urls')),
+    path('', include('estatisticas.urls')),
     path('simulador/', include('simulador.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

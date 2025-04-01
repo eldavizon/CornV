@@ -1,93 +1,73 @@
-{% load static %}
-
-<div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark align-items-center sidebar" style="width: 280px;">
-
-  <!-- Logo centralizado -->
-  <a class="navbar-brand d-flex justify-content-center mb-3" href="{% url 'estatisticas-index' %}">
-    <img src="{% static '/cornv.png' %}" width="170" height="60" class="d-block mx-auto" />
-  </a>
-
-  <hr class="w-100">
-
-  <!-- Menu de navegação -->
-  <ul class="nav nav-pills flex-column mb-auto w-100">
-    {% if user.is_authenticated %}
-    <li class="nav-item">
-      <a href="{% url 'estatisticas-index' %}" class="nav-link active" aria-current="page">
-        Home
-      </a>
-    </li>
-    <!-- Item colapsável: Simuladores -->
-    <li class="nav-item">
-      <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#simuladoresCollapse" role="button" aria-expanded="false" aria-controls="simuladoresCollapse">
-        <span>
-          Simuladores
-        </span>
-        <span>▼</span> <!-- Ícone de seta -->
-      </a>
-      <div class="collapse ps-3" id="simuladoresCollapse">
-        <a href="{% url 'simulador-index' %}" class="nav-link text-white" style="background-color: transparent; font-size: 0.9rem; padding-left: 20px;">
-          Simulador principal
-        </a>
-        <a href="{% url 'obter_dados_historico' %}" class="nav-link text-white" style="background-color: transparent; font-size: 0.9rem; padding-left: 20px;">
-          Série histórica
-        </a>
-        <a href="#" class="nav-link text-white" style="background-color: transparent; font-size: 0.9rem; padding-left: 20px;">Simulador 3</a>
-      </div>
-    </li>
-    {% endif %}
-    <li>
-      <a href="#" class="nav-link text-white">
-        Relatórios
-      </a>
-    </li>
-    <li>
-      <a href="#" class="nav-link text-white">
-        Configurações
-      </a>
-    </li>
-    <li>
-      <a href="#" class="nav-link text-white">
-        Sobre
-      </a>
-    </li>
-  </ul>
-
-  <hr class="w-100">
-  
+{% load static%}
 
 
-
-  <!-- Dropdown de usuário -->
-  <div class="dropdown w-100">
-    {% if user.is_authenticated %}
-    <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-      <img src="{{ user.profile.image.url }}" alt="" width="32" height="32" class="rounded-circle me-2">
-      <strong> {{ user.username }} </strong>
-    </a>
-    {% else %}
-    <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-      <strong>Login/Registrar</strong>
-    </a>
-    {% endif %}
-
-    <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
-      {% if user.is_authenticated %}
-      <li><a class="dropdown-item" href="#">New project...</a></li>
-      <li><a class="dropdown-item" href="#">Settings</a></li>
-      <li><a class="dropdown-item" href="{% url 'user-profile' %}">Perfil</a></li>
-      <li><hr class="dropdown-divider"></li>
-      <li>
-        <form action="{% url 'user-logout' %}" method="post" class="w-100">
-          {% csrf_token %}
-          <button type="submit" class="btn w-100 text-start fw-bold text-light" style="background-color: #3a3a3a; border: none;">Logout</button>
-        </form>
-      </li>
-      {% else %}
-      <li><a class="dropdown-item" href="{% url 'user-login' %}">Login</a></li>
-      <li><a class="dropdown-item" href="{% url 'user-register' %}">Registrar...</a></li>
-      {% endif %}
-    </ul>
-  </div>
-
-</div>
+<div id="layoutSidenav_nav">
+                <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+                    <div class="sb-sidenav-menu">
+                        <div class="nav">
+                            <div class="sb-sidenav-menu-heading">Core</div>
+                            <a class="nav-link" href="{% url 'estatisticas-index' %}">
+                                <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                                Principal
+                            </a>
+                            <div class="sb-sidenav-menu-heading">Interface</div>
+                            <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseLayouts" aria-expanded="false" aria-controls="collapseLayouts">
+                                <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
+                                Simuladores
+                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                            </a>
+                            <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
+                                <nav class="sb-sidenav-menu-nested nav">
+                                    <a class="nav-link" href="{% url 'simulador-index' %}">Simulador principal</a>
+                                    <a class="nav-link" href="{% url 'obter_dados_historico' %}">Série Histórica</a>
+                                </nav>
+                            </div>
+                            <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapsePages" aria-expanded="false" aria-controls="collapsePages">
+                                <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
+                                Pages
+                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                            </a>
+                            <div class="collapse" id="collapsePages" aria-labelledby="headingTwo" data-bs-parent="#sidenavAccordion">
+                                <nav class="sb-sidenav-menu-nested nav accordion" id="sidenavAccordionPages">
+                                    <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#pagesCollapseAuth" aria-expanded="false" aria-controls="pagesCollapseAuth">
+                                        Authentication
+                                        <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                                    </a>
+                                    <div class="collapse" id="pagesCollapseAuth" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordionPages">
+                                        <nav class="sb-sidenav-menu-nested nav">
+                                            <a class="nav-link" href="login.html">Login</a>
+                                            <a class="nav-link" href="register.html">Register</a>
+                                            <a class="nav-link" href="password.html">Forgot Password</a>
+                                        </nav>
+                                    </div>
+                                    <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#pagesCollapseError" aria-expanded="false" aria-controls="pagesCollapseError">
+                                        Error
+                                        <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                                    </a>
+                                    <div class="collapse" id="pagesCollapseError" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordionPages">
+                                        <nav class="sb-sidenav-menu-nested nav">
+                                            <a class="nav-link" href="401.html">401 Page</a>
+                                            <a class="nav-link" href="404.html">404 Page</a>
+                                            <a class="nav-link" href="500.html">500 Page</a>
+                                        </nav>
+                                    </div>
+                                </nav>
+                            </div>
+                            <div class="sb-sidenav-menu-heading">Addons</div>
+                            <a class="nav-link" href="charts.html">
+                                <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
+                                Charts
+                            </a>
+                            <a class="nav-link" href="tables.html">
+                                <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
+                                Tables
+                            </a>
+                        </div>
+                    </div>
+                    <div class="sb-sidenav-footer">
+                        <div class="small">Logged in as:</div>
+                        {{ user.username }}
+                    </div>
+                </nav>
+            </div>
+            

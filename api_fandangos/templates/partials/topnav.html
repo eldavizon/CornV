@@ -1,48 +1,34 @@
-<div class="container">
-    <div class="row mt-4">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header bg-dark text-white">
-                    Informações
+{% load static %}
+<nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+            <!-- Navbar Brand-->
+            <a class="navbar-brand ps-3" href="{% url 'estatisticas-index' %}">CornV</a>
+
+            <!-- Sidebar Toggle-->
+            <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
+            <!-- Navbar Search-->
+            <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">
+                <div class="input-group">
+                    <input class="form-control" type="text" placeholder="Search for..." aria-label="Search for..." aria-describedby="btnNavbarSearch" />
+                    <button class="btn btn-primary" id="btnNavbarSearch" type="button"><i class="fas fa-search"></i></button>
                 </div>
-                <div class="card-body">
-                    <marquee behavior="" direction="">
-                        <h3 class="my-4">Preço do etanol sobe 0,10R$     Preço do milho mais baixo dos ultimos 3 meses</h3>
-                    </marquee>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-dark text-white">
-                    Mais relevantes
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <a class="text-decoration-none text-dark" href="{% url 'estatisticas-staff' %}">
-                                <div class="card my-card shadow text-center p-3">
-                                    <h4>Usuários <i class="fas fa-users"></i></h4>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-md-4">
-                            <a class="text-decoration-none text-dark" href="{% url 'estatisticas-produtos' %}">
-                                <div class="card my-card shadow text-center p-3">
-                                    <h4>Simulações recentes <i class="fas fa-box"></i></h4>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-md-4">
-                            <a class="text-decoration-none text-dark" href="{% url 'estatisticas-retirada' %}">
-                                <div class="card my-card shadow text-center p-3">
-                                    <h4> Hoje o milho está em alta! <i class="fas fa-shipping-fast"></i></h4>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+            </form>
+            <!-- Navbar-->
+            <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="{% url 'user-profile' %}">Configurações</a></li>
+                        <li><a class="dropdown-item" href="#!">Activity Log</a></li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                            
+                            <!-- <a class="dropdown-item" href="{% url 'user-logout' %}">Logout</a>--> 
+                            <form action="{% url 'user-logout' %}" method="post" class="w-100">
+                                {% csrf_token %}
+                                <button type="submit" class="btn w-100 text-start fw-bold" style="border: none;">Logout</button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>

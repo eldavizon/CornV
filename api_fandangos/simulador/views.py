@@ -50,7 +50,7 @@ def calcular_viabilidade(request):
 
 def obter_dados_historico(request):
     try:
-        # Obter os dados históricos de etanol e milho
+        # Obter os dados históricos de etanol e milho ordenados por data
         historico_etanol = HistoricoPrecoEtanol.objects.order_by("data")
         historico_milho = HistoricoPrecoMilho.objects.order_by("data")
 
@@ -62,13 +62,12 @@ def obter_dados_historico(request):
         precos_milho = [float(registro.preco_milho) for registro in historico_milho]
 
         context = {
-            "datas_etanol": datas_etanol,
-            "precos_etanol": precos_etanol,
-            "datas_milho": datas_milho,
-            "precos_milho": precos_milho
+            "datas_etanol_json": json.dumps(datas_etanol),
+            "precos_etanol_json": json.dumps(precos_etanol),
+            "datas_milho_json": json.dumps(datas_milho),
+            "precos_milho_json": json.dumps(precos_milho)
         }
         
-        # Renderiza a página com os dados no contexto para os gráficos
         return render(request, "simulador/serie_historica.html", context)
 
     except Exception as e:

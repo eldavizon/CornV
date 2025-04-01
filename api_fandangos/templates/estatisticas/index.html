@@ -2,6 +2,8 @@
 {% block title %} CornV{% endblock %}
 {% load crispy_forms_tags %}
 
+{% load static%}
+
 {% block content%} 
 
 {% if user.is_authenticated and user.is_staff %}
@@ -9,6 +11,9 @@
 <!-- Topside - widgets de informações -->
 {% include 'partials/topnav.html' %}
 <!-- End Topside -->
+
+{% include 'partials/grafs_cards.html' %}
+
 
 <div class="container-fluid">
     <div class="row my-4">
@@ -25,44 +30,15 @@
     </div>
 </div>
 
-<script>
-    function createChart(canvasId, label, labelsData, dataValues, borderColor) {
-        var ctx = document.getElementById(canvasId).getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labelsData,
-                datasets: [{
-                    label: label,
-                    data: dataValues.map(preco => parseFloat(preco).toFixed(4)), // Formata os preços
-                    borderColor: borderColor,
-                    backgroundColor: borderColor.replace("1)", "0.2)"), // Cor com transparência
-                    fill: true
-                }]
-            },
-            options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { title: { display: true, text: 'Data' } },
-                        y: { title: { display: true, text: 'Preço (R$)' } }
-                    },
-                    elements: { line: { tension: 0.3 } }
-                },
-                plugins: [{
-                    beforeDraw: function(chart) {
-                        chart.canvas.parentNode.style.height = '400px'; // Define a altura mínima
-                    }
-                }]
-        });
-    }
+{% include 'partials/tables.html' %}
 
-    // Criar gráficos dinamicamente
-    document.addEventListener("DOMContentLoaded", function () {
-        createChart('graficoEtanol', 'Preço do Etanol (R$/L)', {{ datas_etanol|safe }}, {{ precos_etanol|safe }}, 'rgba(75, 192, 192, 1)');
-        createChart('graficoMilho', 'Preço do Milho (R$/60kg)', {{ datas_milho|safe }}, {{ precos_milho|safe }}, 'rgba(255, 159, 64, 1)');
-    });
-</script>
+
+<script type="application/json" id="dados-etanol">{{ datas_etanol|safe }}</script>
+<script type="application/json" id="precos-etanol">{{ precos_etanol|safe }}</script>
+<script type="application/json" id="dados-milho">{{ datas_milho|safe }}</script>
+<script type="application/json" id="precos-milho">{{ precos_milho|safe }}</script>
+
+<script src="{% static 'js/graphs/main_graphs.js' %}"></script>
 
 {% else %}
 {% include 'estatisticas/staff_index.html' %}

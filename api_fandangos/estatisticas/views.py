@@ -8,6 +8,7 @@ from django.contrib import messages
 from simulador.models import HistoricoPrecoEtanol, HistoricoPrecoMilho
 from django.db.models import Avg
 from django.db.models.functions import TruncMonth
+import json
 
 
 # Create your views here.
@@ -58,11 +59,10 @@ def index(request):
         
     
     context = {
-        'form': form,
-        "datas_etanol": datas_etanol,
-        "precos_etanol": precos_etanol,
-        "datas_milho": datas_milho,
-        "precos_milho": precos_milho,
+        "datas_etanol": json.dumps(datas_etanol),
+        "precos_etanol": json.dumps(precos_etanol),
+        "datas_milho": json.dumps(datas_milho),
+        "precos_milho": json.dumps(precos_milho),
     }
     
     return render(request, 'estatisticas/index.html', context)
