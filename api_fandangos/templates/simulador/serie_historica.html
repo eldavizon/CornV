@@ -35,23 +35,94 @@
     </div>
 </div>
 
-
-<script type="application/json" id="dados-etanol">{{ datas_etanol_json|safe }}</script>
-<script type="application/json" id="precos-etanol">{{ precos_etanol_json|safe }}</script>
-<script type="application/json" id="dados-milho">{{ datas_milho_json|safe }}</script>
-<script type="application/json" id="precos-milho">{{ precos_milho_json|safe }}</script>
-
-<script src="{% static 'js/graphs/serie_historica.js' %}"></script>
-
-<!-- Seu código que adiciona o evento -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        // Adicionar o listener para capturar mudanças no select
-        document.getElementById("agregacao").addEventListener("change", function() {
-            atualizarGraficos();  // Chama a função que atualiza os gráficos
+document.addEventListener("DOMContentLoaded", function () {
+    const ctxEtanol = document.getElementById("graficoEtanol").getContext("2d");
+    const ctxMilho = document.getElementById("graficoMilho").getContext("2d");
+
+    // Garantir que os dados são carregados corretamente
+    const datasEtanol = {{ datas_etanol|safe }};
+    const precosEtanol = {{ precos_etanol|safe }};
+    const datasMilho = {{ datas_milho|safe }};
+    const precosMilho = {{ precos_milho|safe }};
+
+    function agruparDados(datas, precos, tipo) {
+        const agregados = {};
+        const formatador = {
+            mensal: (data) => data.slice(0, 7), // YYYY-MM
+            semestral: (data) => `${data.slice(0, 4)}-${Math.ceil(parseInt(data.slice(5, 7)) / 6)}`, // YYYY-1 ou YYYY-2
+        };
+
+        if (tipo === "semanal") return { datas, precos };
+
+        datas.forEach((data, index) => {
+            const chave = formatador[tipo](data);
+            if (!agregados[chave]) {
+                agregados[chave] = { soma: 0, contagem: 0 };
+            }
+            agregados[chave].soma += precos[index];
+            agregados[chave].contagem += 1;
         });
+
+        const novasDatas = Object.keys(agregados);
+        const novosPrecos = novasDatas.map((chave) => agregados[chave].soma / agregados[chave].contagem);
+        return { datas: novasDatas, precos: novosPrecos };
+    }
+
+    let graficoEtanol = new Chart(ctxEtanol, {
+        type: "line",
+        data: {
+            labels: datasEtanol,
+            datasets: [{
+                label: "Preço do Etanol (R$/L)",
+                data: precosEtanol,
+                borderColor: "blue",
+                backgroundColor: "rgba(0, 0, 255, 0.2)",
+                fill: true,
+            }],
+        },
+        options: {
+            responsive: true,
+            scales: { x: { type: "category" }, y: { beginAtZero: false } },
+        },
     });
+
+    let graficoMilho = new Chart(ctxMilho, {
+        type: "line",
+        data: {
+            labels: datasMilho,
+            datasets: [{
+                label: "Preço do Milho (R$/saca)",
+                data: precosMilho,
+                borderColor: "green",
+                backgroundColor: "rgba(0, 255, 0, 0.2)",
+                fill: true,
+            }],
+        },
+        options: {
+            responsive: true,
+            scales: { x: { type: "category" }, y: { beginAtZero: false } },
+        },
+    });
+
+    document.getElementById("agregacao").addEventListener("change", function () {
+        const tipo = this.value;
+        const dadosEtanol = agruparDados(datasEtanol, precosEtanol, tipo);
+        const dadosMilho = agruparDados(datasMilho, precosMilho, tipo);
+
+        graficoEtanol.data.labels = dadosEtanol.datas;
+        graficoEtanol.data.datasets[0].data = dadosEtanol.precos;
+        graficoEtanol.update();
+
+        graficoMilho.data.labels = dadosMilho.datas;
+        graficoMilho.data.datasets[0].data = dadosMilho.precos;
+        graficoMilho.update();
+    });
+});
 </script>
+
+
 
 {% endif %}
 {% endblock %}
