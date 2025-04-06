@@ -36,8 +36,9 @@
                 <thead class="bg-info">
                     <tr class="text-white">
                         <th scope="col">Data do cálculo</th>
-                        <th scope="col">Quantidade de milho em kg</th>
-                        <th scope="col">Quantidade de ART em kg</th>
+                        <th scope="col">Quantidade de milho (Kg)</th>
+                        <th scope="col">Quantidade de ART (Kg)</th>
+                        <th scope="col">Volume de etanol absoluto esperado (L)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -47,7 +48,7 @@
                         <td>{{item.data}}</td>
                         <td>{{item.quantidade_milho}}</td>
                         <td>{{item.quantidade_art}}</td>
-                        
+                        <td>{{item.volume_etanol}}</td>
                     </tr>
 
                     {% endfor %}

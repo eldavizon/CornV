@@ -28,8 +28,10 @@ def calcular_viabilidade(request):
             form = form.save(commit=False)
             # multiplica-se pela quantidade media de amido no milho (63%), pelo fator de conversão pra art (1,11) e pela eficiencia da enzima (94%)
             form.quantidade_art = round(form.quantidade_milho * 0.63 * 1.11 * 0.94, 4)
+            print(form.quantidade_art)
+            # multiplica-se pela quantidade de etanol absoluto produzido por g de art (0,6475)
+            form.volume_etanol = round(form.quantidade_art * 0.64754986837845066655404929825302, 2)
             form.save()
-            
             quantidade = form.quantidade_milho
             messages.success(request, f'{quantidade}kg de milho foram convertidos para ART.')
             

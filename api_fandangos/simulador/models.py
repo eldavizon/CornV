@@ -19,7 +19,8 @@ class HistoricoPrecoMilho(models.Model):
 class CalculoART(models.Model):
     quantidade_milho = models.FloatField(null=True)
     quantidade_art = models.FloatField(null=True)
+    volume_etanol = models.FloatField(null=True)
     data = models.DateTimeField(auto_now_add=True, null=True)
 
     def __str__(self):
-        return f"{self.quantidade_milho} kg - {self.quantidade_art} ART - {self.data}"
+        return f"{self.quantidade_milho} kg - {self.quantidade_art} ART - {self.data} - quantidade teorica de etanol produzida: {self.volume_etanol}"
