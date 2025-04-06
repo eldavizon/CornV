@@ -16,7 +16,7 @@ from django.contrib import messages
 def index(request):
     return render(request, 'simulador/index.html')
 
-def calcular_viabilidade(request):
+def calcular_rendimento(request):
     
     items = CalculoART.objects.all()
     #    items = Produto.objects.raw() significaria usar o código SQL bruto ao invés do ORM.
@@ -33,9 +33,9 @@ def calcular_viabilidade(request):
             form.volume_etanol = round(form.quantidade_art * 0.64754986837845066655404929825302, 2)
             form.save()
             quantidade = form.quantidade_milho
-            messages.success(request, f'{quantidade}kg de milho foram convertidos para ART.')
+            messages.success(request, f'{quantidade}kg de milho foram convertidos para ART e etanol.')
             
-            return redirect('calcular_viabilidade')
+            return redirect('calcular-rendimento')
     else:
         form = CalculoARTForm()
     
