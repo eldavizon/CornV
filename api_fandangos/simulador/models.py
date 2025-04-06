@@ -16,4 +16,10 @@ class HistoricoPrecoMilho(models.Model):
     def __str__(self):
         return f"{self.data} - Milho: R$ {self.preco_milho}"
 
+class CalculoART(models.Model):
+    quantidade_milho = models.FloatField(null=True)
+    quantidade_art = models.FloatField(null=True)
+    data = models.DateTimeField(auto_now_add=True, null=True)
 
+    def __str__(self):
+        return f"{self.quantidade_milho} kg - {self.quantidade_art} ART - {self.data}"

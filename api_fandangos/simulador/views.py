@@ -1,9 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import HistoricoPrecoEtanol, HistoricoPrecoMilho
+from .models import HistoricoPrecoEtanol, HistoricoPrecoMilho, CalculoART
+from .forms import CalculoARTForm
+from django.contrib import messages
 
 
 
@@ -14,38 +16,37 @@ from .models import HistoricoPrecoEtanol, HistoricoPrecoMilho
 def index(request):
     return render(request, 'simulador/index.html')
 
-@csrf_exempt
 def calcular_viabilidade(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            materia_prima = data.get("materiaPrima", "Desconhecida")
-            volume_etanol = float(data.get("volumeEtanol", 0) or 0)
-            custo_producao = float(data.get("custoProducao", 0) or 0)
-            massa_MP = float(data.get("massaMP", 0) or 0)
-            eficiencia = float(data.get("eficiencia", 1) or 1)  # Evita divisão por zero
+    
+    items = CalculoART.objects.all()
+    #    items = Produto.objects.raw() significaria usar o código SQL bruto ao invés do ORM.
+    
+    if request.method=="POST":
+        form = CalculoARTForm(request.POST)
+        
+        if form.is_valid():
+            form = form.save(commit=False)
+            # multiplica-se pela quantidade media de amido no milho (63%), pelo fator de conversão pra art (1,11) e pela eficiencia da enzima (94%)
+            form.quantidade_art = round(form.quantidade_milho * 0.63 * 1.11 * 0.94, 4)
+            form.save()
+            
+            quantidade = form.quantidade_milho
+            messages.success(request, f'{quantidade}kg de milho foram convertidos para ART.')
+            
+            return redirect('calcular_viabilidade')
+    else:
+        form = CalculoARTForm()
+    
+        
+    context= {
+        'items': items,
+        'form' : form,
+    }
+    
+    return render(request, 'simulador/calc_art.html', context)
 
 
-            print(f'''data: {data}\n materia prima: {materia_prima} ;volume etanol: {volume_etanol} \n 
-                  custo: {custo_producao} massa: {massa_MP} e eficiencia: {eficiencia}
-                  
-                  ''')
 
-            if custo_producao <= 0 or volume_etanol <= 0:
-                return JsonResponse({"error": "Custo de produção e volume de etanol devem ser maiores que zero."}, status=400)
-
-
-            viabilidade = ((massa_MP * 0.63 * eficiencia) / (custo_producao * volume_etanol))*100
-
-            return JsonResponse({
-                "materiaPrima": materia_prima,
-                "viabilidade": round(viabilidade, 2)
-            })
-
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-
-    return JsonResponse({"error": "Método não permitido"}, status=405)
 
 def obter_dados_historico(request):
     try:
