@@ -24,3 +24,20 @@ class CalculoART(models.Model):
 
     def __str__(self):
         return f"{self.quantidade_milho} kg - {self.quantidade_art} ART - {self.data} - quantidade teorica de etanol produzida: {self.volume_etanol}"
+    
+    
+class DadosFS(models.Model):
+    milho_moido = models.FloatField(null=True)
+    etanol_anidro_prod = models.FloatField(null=True)
+    etanol_hidratado_prod = models.FloatField(null=True)
+    ddg_produzido = models.FloatField(null=True)
+    renda_etanol = models.FloatField(null=True)
+    renda_ddg = models.FloatField(null=True)
+    renda_energia = models.FloatField(null=True)
+    data = models.DateTimeField(auto_now_add=True, null=True)
+
+    def __str__(self):
+        return f'''milho: {self.milho_moido} (ton); etanol anidro: {self.etanol_anidro_prod} (m3); etanol hidratado {self.etanol_hidratado_prod};
+                    DDG: {self.ddg_produzido} (ton); renda de etanol: {self.renda_etanol}; renda de ddg: {self.renda_ddg}; 
+                    renda de energia: {self.renda_energia} - data: {self.data}
+                '''

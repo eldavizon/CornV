@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import HistoricoPrecoEtanol, HistoricoPrecoMilho, CalculoART
+from .models import HistoricoPrecoEtanol, HistoricoPrecoMilho, CalculoART, DadosFS
 from .forms import CalculoARTForm
 from django.contrib import messages
 
@@ -19,6 +19,7 @@ def index(request):
 def calcular_rendimento(request):
     
     items = CalculoART.objects.all()
+    dados_fs = DadosFS.objects.all()
     #    items = Produto.objects.raw() significaria usar o código SQL bruto ao invés do ORM.
     
     if request.method=="POST":
@@ -42,6 +43,7 @@ def calcular_rendimento(request):
         
     context= {
         'items': items,
+        'dados_fs': dados_fs,
         'form' : form,
     }
     
