@@ -19,7 +19,6 @@ def index(request):
 def calcular_rendimento(request):
     
     items = CalculoART.objects.all()
-    dados_fs = DadosFS.objects.all()
     #    items = Produto.objects.raw() significaria usar o código SQL bruto ao invés do ORM.
     
     if request.method=="POST":

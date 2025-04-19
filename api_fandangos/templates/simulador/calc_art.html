@@ -5,7 +5,8 @@
 {% block content %} 
 
 <!--Table-->
-<div class="container">
+<div class="container mt-4 text-center">
+
     <div class="row my-4">
         <div class="col-md-4">
             
@@ -62,8 +63,249 @@
             </table>
         </div>
 
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-around;">
+
+            <!-- Gráfico 1: Rendimento ao longo do tempo -->
+            <div style="width: 48%; max-width: 600px;">
+                <canvas id="graficoRendimentoTempo" style="width: 100%; height: 300px;"></canvas>
+            </div>
+        
+            <!-- Gráfico 2: Etanol produzido ao longo do tempo -->
+            <div style="width: 48%; max-width: 600px;">
+                <canvas id="graficoEtanolTempo" style="width: 100%; height: 300px;"></canvas>
+            </div>
+        
+            <!-- Gráfico 3: Etanol Produzido (barras) x Rendimento (%) (linha) -->
+            <div style="width: 48%; max-width: 600px;">
+                <canvas id="graficoMisto" style="width: 100%; height: 300px;"></canvas>
+            </div>
+        
+            <!-- Gráfico 4: Milho Processado x Etanol Produzido -->
+            <div style="width: 48%; max-width: 600px;">
+                <canvas id="graficoMilhoVsEtanol" style="width: 100%; height: 300px;"></canvas>
+            </div>
+        
+        </div>
+        
+        <!-- ChartJS CDN -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
 </div>
+
+
+
+<script>
+    // Dados extraídos do template para JavaScript
+    const labels = [
+        {% for item in items %}
+            "{{ item.data|date:'Y-m-d' }}"{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    const rendimento = [
+        {% for item in items %}
+            {{ item.rendimento_percentual|default:0 }}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    const etanol = [
+        {% for item in items %}
+            {{ item.volume_etanol|default:0 }}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    // GRÁFICO 1: Rendimento ao longo do tempo
+    new Chart(document.getElementById('graficoRendimentoTempo'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Rendimento (%)',
+                data: rendimento,
+                borderColor: 'blue',
+                backgroundColor: 'rgba(0, 0, 255, 0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Rendimento Percentual ao Longo do Tempo'
+                }
+            },
+            scales: {
+                y: {
+                    title: {
+                        display: true,
+                        text: '% Rendimento'
+                    }
+                }
+            }
+        }
+    });
+
+    // GRÁFICO 2: Etanol produzido ao longo do tempo
+    new Chart(document.getElementById('graficoEtanolTempo'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Etanol Produzido (L)',
+                data: etanol,
+                borderColor: 'green',
+                backgroundColor: 'rgba(0, 128, 0, 0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Etanol Produzido ao Longo do Tempo'
+                }
+            },
+            scales: {
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Litros (L)'
+                    }
+                }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('graficoMisto'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    type: 'bar',
+                    label: 'Etanol Produzido (L)',
+                    data: etanol,
+                    backgroundColor: 'rgba(255, 165, 0, 0.6)',
+                    borderColor: 'orange',
+                    borderWidth: 1,
+                    yAxisID: 'y'
+                },
+                {
+                    type: 'line',
+                    label: 'Rendimento (%)',
+                    data: rendimento,
+                    borderColor: 'blue',
+                    backgroundColor: 'rgba(0, 0, 255, 0.1)',
+                    yAxisID: 'y1',
+                    tension: 0.3,
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Produção de Etanol e Rendimento ao Longo do Tempo'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    type: 'linear',
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Etanol Produzido (L)'
+                    }
+                },
+                y1: {
+                    beginAtZero: true,
+                    type: 'linear',
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Rendimento (%)'
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                }
+            }
+        }
+    });
+
+    const milho = [
+        {% for item in items %}
+            {{ item.quantidade_milho|default:0 }}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    new Chart(document.getElementById('graficoMilhoVsEtanol'), {
+        type: 'line',
+        data: {
+            labels: labels, // já definido anteriormente
+            datasets: [
+                {
+                    label: 'Milho Processado (kg)',
+                    data: milho,
+                    borderColor: 'green',
+                    backgroundColor: 'rgba(0, 128, 0, 0.1)',
+                    fill: false,
+                    tension: 0.3
+                },
+                {
+                    label: 'Etanol Produzido (L)',
+                    data: etanol,
+                    borderColor: 'orange',
+                    backgroundColor: 'rgba(255, 165, 0, 0.1)',
+                    fill: false,
+                    tension: 0.3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Milho Processado e Etanol Produzido (mesma escala)'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Quantidade (kg ou L)'
+                    }
+                }
+            }
+        }
+    });
+</script>
 
 
 

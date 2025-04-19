@@ -10846,6 +10846,21 @@ body {
   height: 100%;
 }
 
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+#layoutSidenav_content {
+  min-height: calc(100vh - 50px); /* Subtraímos a altura do footer, que pode ser ajustada conforme necessário */
+  display: flex;
+  flex-direction: column;
+}
+
+footer {
+  margin-top: auto; /* Isso empurra o footer para o final */
+}
+
 #layoutAuthentication {
   display: flex;
   flex-direction: column;
