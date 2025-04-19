@@ -20,6 +20,8 @@ class CalculoART(models.Model):
     quantidade_milho = models.FloatField(null=True)
     quantidade_art = models.FloatField(null=True)
     volume_etanol = models.FloatField(null=True)
+    proporcao_producao = models.FloatField(null=True)
+    rendimento_percentual = models.FloatField(null=True)
     data = models.DateTimeField(auto_now_add=True, null=True)
 
     def __str__(self):

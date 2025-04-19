@@ -39,6 +39,9 @@
                         <th scope="col">Quantidade de milho (Kg)</th>
                         <th scope="col">Quantidade de ART (Kg)</th>
                         <th scope="col">Volume de etanol absoluto esperado (L)</th>
+                        <th scope="col">L/Kg (etanol absoluto)</th>
+                        <th scope="col">Rendimento (%)</th>
+
                     </tr>
                 </thead>
                 <tbody>
@@ -49,6 +52,8 @@
                         <td>{{item.quantidade_milho}}</td>
                         <td>{{item.quantidade_art}}</td>
                         <td>{{item.volume_etanol}}</td>
+                        <td>{{item.proporcao_producao}}</td>
+                        <td>{{item.rendimento_percentual}}</td>
                     </tr>
 
                     {% endfor %}
@@ -57,40 +62,6 @@
             </table>
         </div>
 
-        <!-- Segunda linha: tabela DadosFS -->
-        <div class="row my-4">
-            <div class="col-md-12">
-                <table id="datatablesFS" class="table bg-white">
-                    <thead class="bg-info">
-                        <tr class="text-white">
-                            <th scope="col">Data do cálculo</th>
-                            <th scope="col">Milho moído (ton)</th>
-                            <th scope="col">Etanol anidro (m³)</th>
-                            <th scope="col">Etanol hidratado (m³)</th>
-                            <th scope="col">DDG produzido (ton)</th>
-                            <th scope="col">Renda com etanol (R$)</th>
-                            <th scope="col">Renda com DDG (R$)</th>
-                            <th scope="col">Renda com energia (R$)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in dados_fs %}
-                        <tr>
-                            <td>{{ item.data|date:"d/m/Y H:i" }}</td>
-                            <td>{{ item.milho_moido|floatformat:2 }}</td>
-                            <td>{{ item.etanol_anidro_prod|floatformat:2 }}</td>
-                            <td>{{ item.etanol_hidratado_prod|floatformat:2 }}</td>
-                            <td>{{ item.ddg_produzido|floatformat:2 }}</td>
-                            <td>{{ item.renda_etanol|floatformat:2 }}</td>
-                            <td>{{ item.renda_ddg|floatformat:2 }}</td>
-                            <td>{{ item.renda_energia|floatformat:2 }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
 
 </div>
 

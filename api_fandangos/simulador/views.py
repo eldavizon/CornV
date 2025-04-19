@@ -27,12 +27,47 @@ def calcular_rendimento(request):
         
         if form.is_valid():
             form = form.save(commit=False)
-            # multiplica-se pela quantidade media de amido no milho (63%), pelo fator de conversão pra art (1,11) e pela eficiencia da enzima (94%)
-            form.quantidade_art = round(form.quantidade_milho * 0.63 * 1.11 * 0.94, 4)
-            print(form.quantidade_art)
+            
+            # multiplica-se pela quantidade media de amido no milho (63%), pelo fator de conversão pra art (1,11) e pela eficiencia das enzimas (97%),
+            #e por 99% (teor de amido hidrolisável)
+            
+            #constantes
+            teor_amido = 0.63
+            amido_hidrolisavel = 0.99
+            eficiencia_enzima = 0.97
+            fator_hidratacao = 1.11
+            
+            calculo_art = form.quantidade_milho * teor_amido * amido_hidrolisavel * eficiencia_enzima  * fator_hidratacao
+            
+            form.quantidade_art = round(calculo_art , 4)
+            
+            
             # multiplica-se pela quantidade de etanol absoluto produzido por g de art (0,6475)
-            form.volume_etanol = round(form.quantidade_art * 0.64754986837845066655404929825302, 2)
-            form.save()
+            # e soma-se pela quantidade de AR já contida no milho (2,3%) multiplicada pelo fator de produção (0,6475)
+            
+            #constantes
+            rendimento = 0.9148
+            fator_etanol_art = 0.647549868378450666554049298253020
+            teor_ar = 0.023
+            
+            volume_etanol_art = calculo_art * fator_etanol_art * rendimento
+            volume_etanol_ar = form.quantidade_milho * teor_ar * fator_etanol_art * rendimento
+            total_etanol_abs = volume_etanol_ar + volume_etanol_art
+            
+            form.volume_etanol = round(total_etanol_abs, 2)
+            
+            # l/kg = produzido / milho de entrada
+            form.proporcao_producao = round((total_etanol_abs / form.quantidade_milho), 4)
+            
+            # rendimento percentual:
+            
+            # teoricamente, 1 kg de milho produz 0.4497L de etanol absoluto
+            proporcao_teorica = 0.4497
+            teorico_produzido = proporcao_teorica * form.quantidade_milho
+            
+            form.rendimento_percentual = round(((total_etanol_abs / teorico_produzido) * 100), 2)
+            
+            form.save() 
             quantidade = form.quantidade_milho
             messages.success(request, f'{quantidade}kg de milho foram convertidos para ART e etanol.')
             
@@ -43,7 +78,6 @@ def calcular_rendimento(request):
         
     context= {
         'items': items,
-        'dados_fs': dados_fs,
         'form' : form,
     }
     
