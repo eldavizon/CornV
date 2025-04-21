@@ -35,6 +35,11 @@ def index(request):
         .order_by('mes')
     )
 
+    ultima_cotacao_milho = HistoricoPrecoMilho.objects.values('data', 'preco_milho').last()
+    
+    ultima_cotacao_etanol = HistoricoPrecoEtanol.objects.values('data', 'preco_etanol').last()
+
+    
     # Preparar os dados para os gráficos
     datas_etanol = [registro['mes'].strftime("%Y-%m-%d") for registro in historico_etanol]
     precos_etanol = [float(registro['preco_medio']) for registro in historico_etanol]
@@ -63,6 +68,8 @@ def index(request):
         "precos_etanol": json.dumps(precos_etanol),
         "datas_milho": json.dumps(datas_milho),
         "precos_milho": json.dumps(precos_milho),
+        "ultima_cotacao_milho": ultima_cotacao_milho,
+        "ultima_cotacao_etanol": ultima_cotacao_etanol,
     }
     
     return render(request, 'estatisticas/index.html', context)

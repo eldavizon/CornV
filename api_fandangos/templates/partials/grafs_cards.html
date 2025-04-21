@@ -6,8 +6,38 @@
     </ol>
     <div class="row">
         <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body"> 
+                    
+                    <h5>Cotação do Milho</h5>
+                    {% if ultima_cotacao_milho %}
+                    <h6>Data: {{ ultima_cotacao_milho.data|date:"d/m/Y" }}</h6>
+                    <h6>Preço: R$ {{ ultima_cotacao_milho.preco_milho }}</h6>
+
+                    {% else %}
+                        <p>Não há dados de cotação disponíveis.</p>
+                    {% endif %}
+
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    
+                    <a class="small text-white stretched-link" href="#">View Details</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
             <div class="card bg-primary text-white mb-4">
-                <div class="card-body">Primary Card</div>
+                <div class="card-body">
+                    <h5>Cotação do Etanol</h5>
+                    {% if ultima_cotacao_etanol %}
+                    <h6>Data: {{ ultima_cotacao_etanol.data|date:"d/m/Y" }}</h6>
+                    <h6>Preço: R$ {{ ultima_cotacao_etanol.preco_etanol }}</h6>
+
+                    {% else %}
+                        <p>Não há dados de cotação disponíveis.</p>
+                    {% endif %}
+                </div>
                 <div class="card-footer d-flex align-items-center justify-content-between">
                     <a class="small text-white stretched-link" href="#">View Details</a>
                     <div class="small text-white"><i class="fas fa-angle-right"></i></div>
@@ -16,15 +46,6 @@
         </div>
         <div class="col-xl-3 col-md-6">
             <div class="card bg-warning text-white mb-4">
-                <div class="card-body">Warning Card</div>
-                <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a class="small text-white stretched-link" href="#">View Details</a>
-                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card bg-success text-white mb-4">
                 <div class="card-body">Success Card</div>
                 <div class="card-footer d-flex align-items-center justify-content-between">
                     <a class="small text-white stretched-link" href="#">View Details</a>

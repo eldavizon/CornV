@@ -52,6 +52,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'simulador.middlewares.atualiza_milho.AtualizaCotacaoMilhoMiddleware',
+
 ]
 
 ROOT_URLCONF = 'api_fandangos.urls'
@@ -108,11 +110,18 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "cotacao_milho_cache"
+    }
+}
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'pt-BR'
 
 TIME_ZONE = 'UTC'
 
@@ -141,9 +150,14 @@ MEDIA_URL = '/media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+# Configurações de login
 LOGIN_REDIRECT_URL = 'estatisticas-index'
 
 LOGIN_URL = 'user-login'
 
 LOGOUT_REDIRECT_URL = 'user-login'
 
+# Ativar middleware de milho e etanol
+
+ATUALIZAR_COTACAO_MILHO = False  # Mude para False para desativar o middleware
