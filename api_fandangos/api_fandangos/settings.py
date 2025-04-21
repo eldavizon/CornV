@@ -53,8 +53,14 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'simulador.middlewares.atualiza_milho.AtualizaCotacaoMilhoMiddleware',
-
+    'simulador.middlewares.atualiza_etanol.AtualizaCotacaoEtanolMiddleware',
 ]
+
+# Ativar middleware de milho e etanol
+
+ATUALIZAR_COTACAO_MILHO = False  # Mude para False para desativar o middleware
+
+ATUALIZAR_COTACAO_ETANOL = False # Mude para False para desativar o middleware
 
 ROOT_URLCONF = 'api_fandangos.urls'
 
@@ -158,6 +164,3 @@ LOGIN_URL = 'user-login'
 
 LOGOUT_REDIRECT_URL = 'user-login'
 
-# Ativar middleware de milho e etanol
-
-ATUALIZAR_COTACAO_MILHO = False  # Mude para False para desativar o middleware

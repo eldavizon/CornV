@@ -32,13 +32,13 @@ class AtualizaCotacaoMilhoMiddleware(MiddlewareMixin):
     def process_request(self, request):
         
         if not getattr(settings, "ATUALIZAR_COTACAO_MILHO", True):
-            print("[Middleware] Atualização de cotação desativada via settings.")
+            print("[Middleware] Atualização de cotação de milho desativada via settings.")
             return
         
         hoje = datetime.date.today()
 
         if cache.get("cotacao_milho_atualizada"):
-            print("[Middleware] Cotação já foi atualizada hoje (cache ativado).")
+            print("[Middleware] Cotação de milho já foi atualizada hoje (cache ativado).")
             return
 
         data_alvo = obter_ultimo_dia_util(hoje)
@@ -48,16 +48,16 @@ class AtualizaCotacaoMilhoMiddleware(MiddlewareMixin):
             cache.set("cotacao_milho_atualizada", True, 60 * 60 * 24)
             return
 
-        print(f"[Middleware] Cotação de {data_alvo} não encontrada. Realizando scraping...")
+        print(f"[Middleware] Cotação de de milho {data_alvo} não encontrada. Realizando scraping...")
         dados = coletar_cotacao_milho()
-        print(f"[Middleware] Dados retornados do scraping: {dados}")
+        print(f"[Middleware] Dados retornados do scraping de milho: {dados}")
 
         if dados and dados.get("data") == data_alvo:
             HistoricoPrecoMilho.objects.create(
                 data=dados["data"],
                 preco_milho=dados["valor"]
             )
-            print(f"[Middleware] Cotação inserida no banco: {dados}")
+            print(f"[Middleware] Cotação de milhoinserida no banco: {dados}")
             cache.set("cotacao_milho_atualizada", True, 60 * 60 * 24)
         else:
-            print(f"[Middleware] Dados inválidos ou não correspondem a {data_alvo}. Nenhuma inserção realizada.")
+            print(f"[Middleware] Dados inválidos ou não correspondem a {data_alvo} para milho. Nenhuma inserção realizada.")
