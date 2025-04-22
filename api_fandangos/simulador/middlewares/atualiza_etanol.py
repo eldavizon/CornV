@@ -30,7 +30,7 @@ def obter_ultimo_dia_util(hoje):
 
 class AtualizaCotacaoEtanolMiddleware(MiddlewareMixin):
     def process_request(self, request):
-        
+   
         if not getattr(settings, "ATUALIZAR_COTACAO_ETANOL", True):
             print("[Middleware] Atualização de cotação de etanol desativada via settings.")
             return
