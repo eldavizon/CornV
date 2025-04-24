@@ -9,7 +9,7 @@ from django.contrib import messages
 # imports pra def index (view da página principal de estatísticas)
 from simulador.models import HistoricoPrecoEtanol, HistoricoPrecoMilho
 from .utils.agregar_quinzenalmente import agrupar_por_intervalo
-from datetime import date
+from datetime import date, timedelta
 import json
 
 
@@ -18,10 +18,9 @@ import json
 @login_required(login_url='user-login', ) # está configurado nas settings > login_url.
 def index(request):
     
-    #Intervalo de tempo pra exibir nos gráficos da tela incial
-    data_inicio = date(2024, 1, 1)
-    data_fim = date(2025, 12, 31)
-
+   # Datas de início e fim calculadas para 2 anos atrás.
+    data_fim = date.today()
+    data_inicio = date(data_fim.year - 2, data_fim.month, data_fim.day)
 
     # Coleta os dados de uma vez
     dados_etanol = HistoricoPrecoEtanol.objects.filter(data__range=(data_inicio, data_fim))

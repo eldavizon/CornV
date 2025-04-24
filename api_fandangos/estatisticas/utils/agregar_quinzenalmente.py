@@ -1,7 +1,7 @@
-from django.db.models import Avg
 from datetime import date, timedelta
 import holidays
 from collections import defaultdict
+import calendar
 
 
 # Importar feriados do estado de São Paulo
@@ -15,17 +15,19 @@ def proximo_dia_util(d):
 def gerar_intervalos_quinzenais(inicio, fim):
     data_atual = inicio
     intervalos = []
+    
     while data_atual <= fim:
         inicio_periodo = proximo_dia_util(data_atual)
-        meio_mes = date(data_atual.year, data_atual.month, 16)
+
         if data_atual.day < 16:
             fim_periodo = date(data_atual.year, data_atual.month, 15)
         else:
-            ultimo_dia_mes = (date(data_atual.year, data_atual.month + 1, 1) - timedelta(days=1)) if data_atual.month < 12 else date(data_atual.year, 12, 31)
-            fim_periodo = ultimo_dia_mes
+            ultimo_dia = calendar.monthrange(data_atual.year, data_atual.month)[1]
+            fim_periodo = date(data_atual.year, data_atual.month, ultimo_dia)
 
         fim_periodo = proximo_dia_util(fim_periodo)
-        if fim_periodo > fim:
+
+        if inicio_periodo > fim:
             break
 
         intervalos.append((inicio_periodo, fim_periodo))
@@ -38,6 +40,7 @@ def gerar_intervalos_quinzenais(inicio, fim):
                 data_atual = date(data_atual.year + 1, 1, 1)
             else:
                 data_atual = date(data_atual.year, data_atual.month + 1, 1)
+
     return intervalos
 
 # Função para agrupar por intervalo
@@ -45,8 +48,9 @@ def agrupar_por_intervalo(dados, campo_preco):
     
     grupos = defaultdict(list)
     
-    data_inicio = date(2024, 1, 1)
-    data_fim = date(2025, 12, 31)
+    # Datas de início e fim calculadas para 2 anos atrás.
+    data_fim = date.today()
+    data_inicio = date(data_fim.year - 2, data_fim.month, data_fim.day)
 
     # Gera os intervalos quinzenais com dias úteis
     intervalos = gerar_intervalos_quinzenais(data_inicio, data_fim)
