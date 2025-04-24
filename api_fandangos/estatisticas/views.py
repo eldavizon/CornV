@@ -5,9 +5,11 @@ from .models import Produto, Retirada
 from .forms import ProdutoForm, RetiradaForm
 from django.contrib.auth.models import User
 from django.contrib import messages
+
+# imports pra def index (view da página principal de estatísticas)
 from simulador.models import HistoricoPrecoEtanol, HistoricoPrecoMilho
-from django.db.models import Avg
-from django.db.models.functions import TruncMonth
+from .utils.agregar_quinzenalmente import agrupar_por_intervalo
+from datetime import date
 import json
 
 
@@ -16,38 +18,30 @@ import json
 @login_required(login_url='user-login', ) # está configurado nas settings > login_url.
 def index(request):
     
-    # Filtrar os registros a cada 6 meses, utilizando o mês truncado
-    historico_etanol = (
-        HistoricoPrecoEtanol.objects
-        .annotate(mes=TruncMonth('data'))  # Trunca a data para o primeiro dia do mês
-        .filter(mes__month__in=[1, 4, 7, 10])  # Filtra apenas os meses de janeiro e julho (a cada 6 meses)
-        .values('mes')
-        .annotate(preco_medio=Avg('preco_etanol'))  # Média do preço de etanol por período de 6 meses
-        .order_by('mes')
-    )
+    #Intervalo de tempo pra exibir nos gráficos da tela incial
+    data_inicio = date(2024, 1, 1)
+    data_fim = date(2025, 12, 31)
 
-    historico_milho = (
-        HistoricoPrecoMilho.objects
-        .annotate(mes=TruncMonth('data'))
-        .filter(mes__month__in=[1, 4, 7, 10])  # Filtra apenas os meses de janeiro e julho (a cada 6 meses)
-        .values('mes')
-        .annotate(preco_medio=Avg('preco_milho'))
-        .order_by('mes')
-    )
 
-    ultima_cotacao_milho = HistoricoPrecoMilho.objects.values('data', 'preco_milho').last()
-    
-    ultima_cotacao_etanol = HistoricoPrecoEtanol.objects.values('data', 'preco_etanol').last()
+    # Coleta os dados de uma vez
+    dados_etanol = HistoricoPrecoEtanol.objects.filter(data__range=(data_inicio, data_fim))
+    dados_milho = HistoricoPrecoMilho.objects.filter(data__range=(data_inicio, data_fim))
 
-    
-    # Preparar os dados para os gráficos
-    datas_etanol = [registro['mes'].strftime("%Y-%m-%d") for registro in historico_etanol]
+    historico_etanol = agrupar_por_intervalo(dados_etanol, 'preco_etanol')
+    historico_milho = agrupar_por_intervalo(dados_milho, 'preco_milho')
+
+    datas_etanol = [registro['quinzena'].strftime("%Y-%m-%d") for registro in historico_etanol]
     precos_etanol = [float(registro['preco_medio']) for registro in historico_etanol]
 
-    datas_milho = [registro['mes'].strftime("%Y-%m-%d") for registro in historico_milho]
+    datas_milho = [registro['quinzena'].strftime("%Y-%m-%d") for registro in historico_milho]
     precos_milho = [float(registro['preco_medio']) for registro in historico_milho]
-        
-    
+
+
+    # Últimas cotações para exibir nos cards da página principal
+    ultima_cotacao_milho = HistoricoPrecoMilho.objects.values('data', 'preco_milho').last()
+    ultima_cotacao_etanol = HistoricoPrecoEtanol.objects.values('data', 'preco_etanol').last()
+
+
     if request.method == "POST":
         form = RetiradaForm(request.POST)
         
