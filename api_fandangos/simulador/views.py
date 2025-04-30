@@ -7,6 +7,9 @@ from .models import HistoricoPrecoEtanol, HistoricoPrecoMilho, CalculoART, Dados
 from .forms import CalculoARTForm
 from django.contrib import messages
 
+from plotly.utils import PlotlyJSONEncoder
+import plotly.graph_objects as go
+
 
 
 
@@ -96,13 +99,47 @@ def obter_dados_historico(request):
         datas_milho = [registro.data.strftime("%Y-%m-%d") for registro in historico_milho]
         precos_milho = [float(registro.preco_milho) for registro in historico_milho]
 
+        # Gráfico Etanol
+        fig_etanol = go.Figure()
+        fig_etanol.add_trace(go.Scatter(
+            x=datas_etanol,
+            y=precos_etanol,
+            mode='lines+markers',
+            name='Etanol',
+            line=dict(color='blue', width=2),
+            fill='tozeroy',
+            fillcolor='rgba(0, 0, 255, 0.2)'
+        ))
+        fig_etanol.update_layout(
+            title='Preço do Etanol (R$/L)',
+            xaxis_title='Data',
+            yaxis_title='Preço (R$)',
+            height=400
+        )
+
+        # Gráfico Milho
+        fig_milho = go.Figure()
+        fig_milho.add_trace(go.Scatter(
+            x=datas_milho,
+            y=precos_milho,
+            mode='lines+markers',
+            name='Milho',
+            line=dict(color='green', width=2),
+            fill='tozeroy',
+            fillcolor='rgba(0, 255, 0, 0.2)'
+        ))
+        fig_milho.update_layout(
+            title='Preço do Milho (R$/saca)',
+            xaxis_title='Data',
+            yaxis_title='Preço (R$)',
+            height=400
+        )
+
         context = {
-            "datas_etanol": json.dumps(datas_etanol),
-            "precos_etanol": json.dumps(precos_etanol),
-            "datas_milho": json.dumps(datas_milho),
-            "precos_milho": json.dumps(precos_milho),
+            "grafico_etanol": json.dumps(fig_etanol, cls=PlotlyJSONEncoder),
+            "grafico_milho": json.dumps(fig_milho, cls=PlotlyJSONEncoder),
         }
-        
+
         return render(request, "simulador/serie_historica.html", context)
 
     except Exception as e:

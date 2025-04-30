@@ -5,7 +5,6 @@
 {% block content %}
 
 {% if user.is_authenticated %}
-
 <div class="container mt-4 text-center">
     <h1 style="color: black;">Série Histórica de Preços</h1>
 
@@ -15,118 +14,122 @@
         </div>
     {% endif %}
 
-    <h6 style="color: black;">Agrupar por:</h1>
-
-    <div class="mb-3 p-3">
-        <select id="agregacao" class="form-select p-2">
-            <option value="semanal">Semanal</option>
-            <option value="mensal">Mensal</option>
-            <option value="semestral">Semestral</option>
-        </select>
-    </div>
-
     <div style="padding: 20px;">
-        <h3 style="color: black;">Histórico de Preços de Etanol</h2>
-        <canvas style="padding: 30px;" id="graficoEtanol"></canvas>
+        <h3 style="color: black;">Histórico de Preços de Etanol</h3>
+        <h6 style="color: black;">Agrupar por:</h6>
+        <div class="mb-3 text-center">
+            <select id="agregacaoEtanol" class="form-select p-2" style="width: 150px; margin: 0 auto;">
+                <option value="semanal">Semanal</option>
+                <option value="mensal">Mensal</option>
+                <option value="semestral" selected>Semestral</option>
+            </select>
+        </div>
+        <div id="graficoEtanol"></div>
     </div>
 
     <hr>
 
-
     <div style="padding: 20px;">
-        <h3 style="color: black;">Histórico de Preços de Milho</h2>
-        <canvas style="padding: 30px;" id="graficoMilho"></canvas>
+        <h3 style="color: black;">Histórico de Preços de Milho</h3>
+        <div class="mb-3 text-center">
+            <select id="agregacaoMilho" class="form-select p-2" style="width: 150px; margin: 0 auto;">
+                <option value="semanal">Semanal</option>
+                <option value="mensal">Mensal</option>
+                <option value="semestral" selected>Semestral</option>
+            </select>
+        </div>
+        <div id="graficoMilho"></div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
+
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const ctxEtanol = document.getElementById("graficoEtanol").getContext("2d");
-    const ctxMilho = document.getElementById("graficoMilho").getContext("2d");
+    function agregarDados(dados, tipo) {
+        const agrupado = {};
 
-    // Garantir que os dados são carregados corretamente
-    const datasEtanol = {{ datas_etanol|safe }};
-    const precosEtanol = {{ precos_etanol|safe }};
-    const datasMilho = {{ datas_milho|safe }};
-    const precosMilho = {{ precos_milho|safe }};
+        dados.forEach(ponto => {
+            const data = new Date(ponto.x);
+            let chave;
 
-    function agruparDados(datas, precos, tipo) {
-        const agregados = {};
-        const formatador = {
-            mensal: (data) => data.slice(0, 7), // YYYY-MM
-            semestral: (data) => `${data.slice(0, 4)}-${Math.ceil(parseInt(data.slice(5, 7)) / 6)}`, // YYYY-1 ou YYYY-2
-        };
-
-        if (tipo === "semanal") return { datas, precos };
-
-        datas.forEach((data, index) => {
-            const chave = formatador[tipo](data);
-            if (!agregados[chave]) {
-                agregados[chave] = { soma: 0, contagem: 0 };
+            if (tipo === 'semanal') {
+                const dia = data.getDay();
+                const diff = data.getDate() - dia + (dia === 0 ? -6 : 1);
+                const segunda = new Date(data.setDate(diff));
+                chave = segunda.toISOString().split('T')[0];
+            } else if (tipo === 'mensal') {
+                chave = `${data.getFullYear()}-${(data.getMonth() + 1).toString().padStart(2, '0')}-01`;
+            } else if (tipo === 'semestral') {
+                const semestre = data.getMonth() < 6 ? 0 : 6;
+                const semestreData = new Date(data.getFullYear(), semestre, 1);
+                chave = semestreData.toISOString().split('T')[0];
             }
-            agregados[chave].soma += precos[index];
-            agregados[chave].contagem += 1;
+
+            if (!agrupado[chave]) {
+                agrupado[chave] = { soma: 0, count: 0 };
+            }
+
+            agrupado[chave].soma += ponto.y;
+            agrupado[chave].count += 1;
         });
 
-        const novasDatas = Object.keys(agregados);
-        const novosPrecos = novasDatas.map((chave) => agregados[chave].soma / agregados[chave].contagem);
-        return { datas: novasDatas, precos: novosPrecos };
+        return Object.entries(agrupado)
+            .map(([key, val]) => ({
+                x: key,
+                y: val.soma / val.count
+            }))
+            .sort((a, b) => new Date(a.x) - new Date(b.x));
     }
 
-    let graficoEtanol = new Chart(ctxEtanol, {
-        type: "line",
-        data: {
-            labels: datasEtanol,
-            datasets: [{
-                label: "Preço do Etanol (R$/L)",
-                data: precosEtanol,
-                borderColor: "blue",
-                backgroundColor: "rgba(0, 0, 255, 0.2)",
-                fill: true,
-            }],
-        },
-        options: {
-            responsive: true,
-            scales: { x: { type: "category" }, y: { beginAtZero: false } },
-        },
+    document.addEventListener("DOMContentLoaded", function () {
+        const originalEtanol = JSON.parse('{{ grafico_etanol|escapejs }}');
+        const originalMilho = JSON.parse('{{ grafico_milho|escapejs }}');
+
+        const dadosEtanol = originalEtanol.data[0].x.map((x, i) => ({ x: x, y: originalEtanol.data[0].y[i] }));
+        const dadosMilho = originalMilho.data[0].x.map((x, i) => ({ x: x, y: originalMilho.data[0].y[i] }));
+
+        function atualizarGraficoEtanol(tipo) {
+            const agregado = agregarDados(dadosEtanol, tipo);
+            const trace = {
+                x: agregado.map(d => d.x),
+                y: agregado.map(d => d.y),
+                mode: 'lines+markers',
+                name: 'Etanol',
+                line: { color: 'rgba(75, 192, 192, 1)', width: 2 },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(75, 192, 192, 0.2)'
+            };
+            Plotly.react('graficoEtanol', [trace], originalEtanol.layout);
+        }
+
+        function atualizarGraficoMilho(tipo) {
+            const agregado = agregarDados(dadosMilho, tipo);
+            const trace = {
+                x: agregado.map(d => d.x),
+                y: agregado.map(d => d.y),
+                mode: 'lines+markers',
+                name: 'Milho',
+                line: { color: 'rgba(255, 159, 64, 1)', width: 2 },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(255, 159, 64, 0.2)'
+            };
+            Plotly.react('graficoMilho', [trace], originalMilho.layout);
+        }
+
+        // Inicializa gráficos
+        atualizarGraficoEtanol("semestral");
+        atualizarGraficoMilho("semestral");
+
+        // Eventos
+        document.getElementById("agregacaoEtanol").addEventListener("change", function () {
+            atualizarGraficoEtanol(this.value);
+        });
+
+        document.getElementById("agregacaoMilho").addEventListener("change", function () {
+            atualizarGraficoMilho(this.value);
+        });
     });
-
-    let graficoMilho = new Chart(ctxMilho, {
-        type: "line",
-        data: {
-            labels: datasMilho,
-            datasets: [{
-                label: "Preço do Milho (R$/saca)",
-                data: precosMilho,
-                borderColor: "green",
-                backgroundColor: "rgba(0, 255, 0, 0.2)",
-                fill: true,
-            }],
-        },
-        options: {
-            responsive: true,
-            scales: { x: { type: "category" }, y: { beginAtZero: false } },
-        },
-    });
-
-    document.getElementById("agregacao").addEventListener("change", function () {
-        const tipo = this.value;
-        const dadosEtanol = agruparDados(datasEtanol, precosEtanol, tipo);
-        const dadosMilho = agruparDados(datasMilho, precosMilho, tipo);
-
-        graficoEtanol.data.labels = dadosEtanol.datas;
-        graficoEtanol.data.datasets[0].data = dadosEtanol.precos;
-        graficoEtanol.update();
-
-        graficoMilho.data.labels = dadosMilho.datas;
-        graficoMilho.data.datasets[0].data = dadosMilho.precos;
-        graficoMilho.update();
-    });
-});
 </script>
-
-
 
 {% endif %}
 {% endblock %}

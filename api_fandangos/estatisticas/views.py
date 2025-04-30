@@ -12,6 +12,9 @@ from .utils.agregar_quinzenalmente import agrupar_por_intervalo
 from datetime import date, timedelta
 import json
 
+import plotly.graph_objects as go
+from plotly.utils import PlotlyJSONEncoder
+
 
 # Create your views here.
 
@@ -39,6 +42,44 @@ def index(request):
     # Últimas cotações para exibir nos cards da página principal
     ultima_cotacao_milho = HistoricoPrecoMilho.objects.values('data', 'preco_milho').last()
     ultima_cotacao_etanol = HistoricoPrecoEtanol.objects.values('data', 'preco_etanol').last()
+    
+    # Cria o gráfico do Etanol
+    fig_etanol = go.Figure()
+    fig_etanol.add_trace(go.Scatter(
+        x=datas_etanol,
+        y=precos_etanol,
+        mode='lines+markers',
+        name='Etanol',
+        line=dict(color='rgba(75, 192, 192, 1)', width=2),
+        fill='tozeroy',
+        fillcolor='rgba(75, 192, 192, 0.2)'
+    ))
+    fig_etanol.update_layout(
+        title='Preço do Etanol (R$/L)',
+        xaxis_title='Data',
+        yaxis_title='Preço (R$)',
+        height=400,
+        margin=dict(l=20, r=20, t=50, b=20)
+    )
+
+    # Cria o gráfico do Milho
+    fig_milho = go.Figure()
+    fig_milho.add_trace(go.Scatter(
+        x=datas_milho,
+        y=precos_milho,
+        mode='lines+markers',
+        name='Milho',
+        line=dict(color='rgba(255, 159, 64, 1)', width=2),
+        fill='tozeroy',
+        fillcolor='rgba(255, 159, 64, 0.2)'
+    ))
+    fig_milho.update_layout(
+        title='Preço do Milho (R$/60kg)',
+        xaxis_title='Data',
+        yaxis_title='Preço (R$)',
+        height=400,
+        margin=dict(l=20, r=20, t=50, b=20)
+    )
 
 
     if request.method == "POST":
@@ -57,10 +98,8 @@ def index(request):
         
     
     context = {
-        "datas_etanol": json.dumps(datas_etanol),
-        "precos_etanol": json.dumps(precos_etanol),
-        "datas_milho": json.dumps(datas_milho),
-        "precos_milho": json.dumps(precos_milho),
+        "grafico_etanol": json.dumps(fig_etanol, cls=PlotlyJSONEncoder),
+        "grafico_milho": json.dumps(fig_milho, cls=PlotlyJSONEncoder),
         "ultima_cotacao_milho": ultima_cotacao_milho,
         "ultima_cotacao_etanol": ultima_cotacao_etanol,
     }
