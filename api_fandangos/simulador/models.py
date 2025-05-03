@@ -15,6 +15,16 @@ class HistoricoPrecoMilho(models.Model):
 
     def __str__(self):
         return f"{self.data} - Milho: R$ {self.preco_milho}"
+    
+class ProcessoMoagem(models.Model):
+    quantidade_milho = models.FloatField(null=True)
+    milho_moido = models.FloatField(null=True)
+    eficiencia = models.FloatField(null=True)
+    energia_total = models.FloatField(null=True)
+    data = models.DateTimeField(auto_now_add=True, null=True)
+
+    def __str__(self):
+        return f"{self.quantidade_milho} kg - {self.milho_moido} moido - {self.data} - eficiencia: {self.eficiencia}"
 
 class CalculoART(models.Model):
     quantidade_milho = models.FloatField(null=True)
