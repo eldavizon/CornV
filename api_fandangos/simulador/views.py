@@ -3,13 +3,15 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import HistoricoPrecoEtanol, HistoricoPrecoMilho, CalculoART, DadosFS, ProcessoMoagem
+from .models import HistoricoPrecoEtanol, HistoricoPrecoMilho, CalculoART, ProcessoMoagem
 from .forms import CalculoARTForm, ProcessoMoagemForm
 from django.contrib import messages
 
+#View de serie historica
 from plotly.utils import PlotlyJSONEncoder
 import plotly.graph_objects as go
 
+#View de processo
 from .modelos.moagem import calcular_moagem
 
 
@@ -21,16 +23,13 @@ def index(request):
     return render(request, 'simulador/index.html')
 
 
-
+@login_required(login_url='user-login', ) # está configurado nas settings > login_url.
 def processo(request):
-    print("🔵 Início da view `processo`")
-
     # Recupera todos os registros do banco para exibir na página
-    items = ProcessoMoagem.objects.all()
+    dados_moagem = ProcessoMoagem.objects.all()
 
     if request.method == "POST":
-        print("🟡 Requisição POST recebida")
-
+        
         form = ProcessoMoagemForm(request.POST)
 
         if form.is_valid():
@@ -41,9 +40,8 @@ def processo(request):
             quantidade = float(form.cleaned_data["quantidade_milho"])
             print(f"🔍 Quantidade de milho informada: {quantidade} kg")
 
-            # Chama função de moagem só com valor numérico (seguro)
+            # Chama função de moagem só com valor numérico
             resultado = calcular_moagem(quantidade)
-            print(f"📊 Resultado da moagem: {resultado}")
 
             form_instance.milho_moido = resultado["massa_moida"]
             form_instance.eficiencia = resultado["eficiencia_percentual"]
@@ -51,28 +49,27 @@ def processo(request):
 
             # Salva no banco
             form_instance.save()
-            print("💾 Dados salvos no banco com sucesso")
+
 
             messages.success(request, f'{quantidade} kg de milho foram moídos.')
             return redirect('simulador-processo')
 
         else:
-            print("🔴 Formulário inválido")
+            print("🔴 Formulário de processo inválido")
 
     else:
-        print("⚪ Requisição GET recebida")
         form = ProcessoMoagemForm()
 
     # Renderiza o template com o formulário e os registros salvos
     context = {
-        'items': items,
+        'dados_moagem': dados_moagem,
         'form': form,
     }
 
-    print("✅ Renderizando template com context")
     return render(request, 'simulador/processo.html', context)
 
 
+@login_required(login_url='user-login', ) # está configurado nas settings > login_url.
 def calcular_rendimento(request):
     
     items = CalculoART.objects.all()
@@ -140,6 +137,7 @@ def calcular_rendimento(request):
     return render(request, 'simulador/calc_art.html', context)
 
 
+@login_required(login_url='user-login', ) # está configurado nas settings > login_url.
 def obter_dados_historico(request):
     try:
         historico_etanol = HistoricoPrecoEtanol.objects.order_by("data")

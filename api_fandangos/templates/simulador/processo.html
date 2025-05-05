@@ -45,14 +45,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in items %}
+                    {% for dado_moagem in dados_moagem %}
 
                     <tr>
-                        <td>{{item.data}}</td>
-                        <td>{{item.quantidade_milho}}</td>
-                        <td>{{item.milho_moido}}</td>
-                        <td>{{item.eficiencia}}</td>
-                        <td>{{item.energia_total}}</td>
+                        <td>{{dado_moagem.data}}</td>
+                        <td>{{dado_moagem.quantidade_milho}}</td>
+                        <td>{{dado_moagem.milho_moido}}</td>
+                        <td>{{dado_moagem.eficiencia}}</td>
+                        <td>{{dado_moagem.energia_total}}</td>
 
         
                     </tr>
