@@ -50,7 +50,7 @@
 <script type="application/json" id="dados-milho">{{ datas_milho|safe }}</script>
 <script type="application/json" id="precos-milho">{{ precos_milho|safe }}</script>
 
-<script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
+<script src="{% static '/js/plotly-3.0.1.min.js' %}" charset="utf-8"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
