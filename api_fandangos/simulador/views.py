@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import HistoricoPrecoEtanol, HistoricoPrecoMilho, CalculoART, ProcessoMoagem
+from .models import HistoricoPrecoEtanol, HistoricoPrecoMilho, CalculoART, ProcessoMoagem, ProcessoLiquefacao
 from .forms import CalculoARTForm, ProcessoMoagemForm
 from django.contrib import messages
 
@@ -13,6 +13,8 @@ import plotly.graph_objects as go
 
 #View de processo
 from .modelos.moagem import calcular_moagem
+from .modelos.liquefacao import simular_liquefacao  # ajuste o caminho conforme sua estrutura
+
 
 
 
@@ -22,14 +24,11 @@ from .modelos.moagem import calcular_moagem
 def index(request):
     return render(request, 'simulador/index.html')
 
-
-@login_required(login_url='user-login', ) # está configurado nas settings > login_url.
 def processo(request):
-    # Recupera todos os registros do banco para exibir na página
     dados_moagem = ProcessoMoagem.objects.all()
+    dados_liquefacao = ProcessoLiquefacao.objects.all()
 
     if request.method == "POST":
-        
         form = ProcessoMoagemForm(request.POST)
 
         if form.is_valid():
@@ -40,29 +39,39 @@ def processo(request):
             quantidade = float(form.cleaned_data["quantidade_milho"])
             print(f"🔍 Quantidade de milho informada: {quantidade} kg")
 
-            # Chama função de moagem só com valor numérico
+            # Etapa 1: Moagem
             resultado = calcular_moagem(quantidade)
 
             form_instance.milho_moido = resultado["massa_moida"]
             form_instance.eficiencia = resultado["eficiencia_percentual"]
             form_instance.energia_total_kj = resultado["energia_total_kJ"]
 
-            # Salva no banco
             form_instance.save()
 
+            # Etapa 2: Liquefação com alfa-amilase (baseado na massa moída)
+            resultado_liquefacao = simular_liquefacao(form_instance.milho_moido)
 
-            messages.success(request, f'{quantidade} kg de milho foram moídos.')
+            liquefacao = ProcessoLiquefacao.objects.create(
+                processo=form_instance,
+                amido_convertido=resultado_liquefacao["massa_glicose_g"] / 1000,  # kg
+                conversao_amido=resultado_liquefacao["conversao_percentual"],
+                tempo_liquefacao=resultado_liquefacao["tempo_h"],
+                volume_reacao_L=form_instance.milho_moido / 1.05,  # densidade 1.05 kg/L
+                conc_amido_inicial=resultado_liquefacao["concentracao_amido_inicial"] / 1000,  # kg/L
+                conc_amido_final=resultado_liquefacao["concentracao_amido_final"] / 1000,      # kg/L
+            )
+
+            messages.success(request, f'{quantidade} kg de milho foram moídos e liquefeitos.')
             return redirect('simulador-processo')
 
         else:
             print("🔴 Formulário de processo inválido")
-
     else:
         form = ProcessoMoagemForm()
 
-    # Renderiza o template com o formulário e os registros salvos
     context = {
         'dados_moagem': dados_moagem,
+        'dados_liquefacao': dados_liquefacao,
         'form': form,
     }
 

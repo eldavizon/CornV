@@ -15,6 +15,20 @@ class HistoricoPrecoMilho(models.Model):
 
     def __str__(self):
         return f"{self.data} - Milho: R$ {self.preco_milho}"
+
+class ProcessoLiquefacao(models.Model):
+    processo = models.OneToOneField('ProcessoMoagem', on_delete=models.CASCADE, related_name='liquefacao')
+
+    amido_convertido = models.FloatField(null=True, help_text="Amido convertido (kg)")
+    conversao_amido = models.FloatField(null=True, help_text="Conversão do amido (%)")
+    tempo_liquefacao = models.FloatField(null=True, help_text="Tempo de liquefação (h)")
+    volume_reacao_L = models.FloatField(null=True, help_text="Volume da reação (L)")
+    conc_amido_inicial = models.FloatField(null=True, help_text="Concentração inicial de amido (kg/L)")
+    conc_amido_final = models.FloatField(null=True, help_text="Concentração final de amido (kg/L)")
+    data = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Liq. de {self.processo.milho_moido} kg de milho moído - {self.conversao_amido:.1f}% convertido"
     
 class ProcessoMoagem(models.Model):
     quantidade_milho = models.FloatField(null=True)

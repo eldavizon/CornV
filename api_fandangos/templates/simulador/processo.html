@@ -33,32 +33,56 @@
             </div>
         </div>
         <div class="col-md-8">
-            <table id="datatablesSimple" class="table bg-white">
+            <table id="datatablesSimple" class="table bg-white display">
                 <thead class="bg-info">
                     <tr class="text-white">
                         <th scope="col">Data</th>
-                        <th scope="col">Massa de entrada: (Kg)</th>
-                        <th scope="col">Massa moída: (Kg)</th>
+                        <th scope="col">Massa de entrada (Kg)</th>
+                        <th scope="col">Massa moída (Kg)</th>
                         <th scope="col">Eficiência (%)</th>
-                        <th scope="col">Energia total gasta (kJ):</th>
-
+                        <th scope="col">Energia total gasta (kJ)</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for dado_moagem in dados_moagem %}
-
-                    <tr>
-                        <td>{{dado_moagem.data}}</td>
-                        <td>{{dado_moagem.quantidade_milho}}</td>
-                        <td>{{dado_moagem.milho_moido}}</td>
-                        <td>{{dado_moagem.eficiencia}}</td>
-                        <td>{{dado_moagem.energia_total}}</td>
-
-        
-                    </tr>
-
+                        <tr>
+                            <td>{{ dado_moagem.data }}</td>
+                            <td>{{ dado_moagem.quantidade_milho }}</td>
+                            <td>{{ dado_moagem.milho_moido }}</td>
+                            <td>{{ dado_moagem.eficiencia }}</td>
+                            <td>{{ dado_moagem.energia_total }}</td>
+                        </tr>
                     {% endfor %}
-                    
+                </tbody>
+            </table>
+
+            <table id="datatablesSimple" class="table bg-white display">
+                <thead class="bg-info">
+                    <tr class="text-white">
+                        <th scope="col">Data</th>
+                        <th scope="col">Amido convertido (kg)</th>
+                        <th scope="col">Conversão do amido (%)</th>
+                        <th scope="col">Tempo de liquefação (h)</th>
+                        <th scope="col">Volume da reação (L)</th>
+                        <th scope="col">Concentração final de amido (kg/L)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dado_moagem in dados_moagem %}
+                        <tr>
+                            <td>{{ dado_moagem.data }}</td>
+
+                            {% if dado_moagem.liquefacao %}
+                                <td>{{ dado_moagem.liquefacao.amido_convertido }}</td>
+                                <td>{{ dado_moagem.liquefacao.conversao_amido }}</td>
+                                <td>{{ dado_moagem.liquefacao.tempo_liquefacao }}</td>
+                                <td>{{ dado_moagem.liquefacao.volume_reacao_L }}</td>
+                                <td>{{ dado_moagem.liquefacao.conc_amido_final }}</td>
+                            {% else %}
+                                <td colspan="5">Sem dados de liquefação</td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
