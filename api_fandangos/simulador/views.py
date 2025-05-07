@@ -1,11 +1,14 @@
+#django
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-import json
+from django.contrib import messages
+
+#models e forms
 from .models import HistoricoPrecoEtanol, HistoricoPrecoMilho, CalculoART, ProcessoMoagem, ProcessoLiquefacao
 from .forms import CalculoARTForm, ProcessoMoagemForm
-from django.contrib import messages
+
 
 #View de serie historica
 from plotly.utils import PlotlyJSONEncoder
@@ -15,6 +18,8 @@ import plotly.graph_objects as go
 from .modelos.moagem import calcular_moagem
 from .modelos.liquefacao import simular_liquefacao  # ajuste o caminho conforme sua estrutura
 
+#bibliotecas adicionais
+import json
 
 
 
