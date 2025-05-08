@@ -29,6 +29,7 @@ import json
 def index(request):
     return render(request, 'simulador/index.html')
 
+@login_required(login_url='user-login', ) # está configurado nas settings > login_url.
 def processo(request):
     dados_moagem = ProcessoMoagem.objects.all()
     dados_liquefacao = ProcessoLiquefacao.objects.all()
