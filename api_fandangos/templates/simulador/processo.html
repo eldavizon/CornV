@@ -5,109 +5,128 @@
 
 {% block content %} 
 
-<!--Table-->
-<div class="container mt-4 text-center p-3">
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const moagemTable = document.querySelector("#moagemTable");
+        if (moagemTable) {
+            new simpleDatatables.DataTable(moagemTable);
+        }
 
-    <div class="row my-4">
-        <div class="col-md-4">
-            
+        const liquefacaoTable = document.querySelector("#liquefacaoTable");
+        if (liquefacaoTable) {
+            new simpleDatatables.DataTable(liquefacaoTable);
+        }
+    });
+</script>
+
+<div class="container-fluid mt-4 p-3">
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-3 col-md-4 col-sm-12 mb-3">
             {% for message in messages %}
-            {% if message%}
+            {% if message %}
             <div class="alert alert-{{ message.tags }}">
                 {{ message }}
             </div>
             {% endif %}
             {% endfor %}
 
-            <div class="border bg-white p-3">
+            <div class="border bg-white p-3 h-100">
                 <h4>Moer milho</h4>
                 <hr>
                 <form method="POST" action="">
-                    
                     {% csrf_token %}
-
                     {{ form|crispy }}
-
                     <input class="btn btn-success btn-block" type="submit" value="Converter">
-
                 </form>
             </div>
         </div>
-        <div class="col-md-8">
-            <table id="datatablesSimple" class="table bg-white display">
-                <thead class="bg-info">
-                    <tr class="text-white">
-                        <th scope="col">Data</th>
-                        <th scope="col">Massa de entrada (Kg)</th>
-                        <th scope="col">Massa moída (Kg)</th>
-                        <th scope="col">Eficiência (%)</th>
-                        <th scope="col">Energia total gasta (kJ)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for dado_moagem in dados_moagem %}
+
+        <div class="col-lg-9 col-md-8 col-sm-12">
+            <div class="table-responsive mb-4">
+                <table id="moagemTable" class="table bg-white table-striped table-bordered">
+                    <thead class="bg-info text-white">
                         <tr>
-                            <td>{{ dado_moagem.data }}</td>
-                            <td>{{ dado_moagem.quantidade_milho }}</td>
-                            <td>{{ dado_moagem.milho_moido }}</td>
-                            <td>{{ dado_moagem.eficiencia }}</td>
-                            <td>{{ dado_moagem.energia_total }}</td>
+                            <th>Data</th>
+                            <th>Massa de entrada (Kg)</th>
+                            <th>Massa moída (Kg)</th>
+                            <th>Eficiência (%)</th>
+                            <th>Energia total gasta (kJ)</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% for dado_moagem in dados_moagem %}
+                            <tr>
+                                <td>{{ dado_moagem.data }}</td>
+                                <td>{{ dado_moagem.quantidade_milho }}</td>
+                                <td>{{ dado_moagem.milho_moido }}</td>
+                                <td>{{ dado_moagem.eficiencia }}</td>
+                                <td>{{ dado_moagem.energia_total }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
-            <table id="datatablesSimple" class="table bg-white display">
-                <thead class="bg-info">
-                    <tr class="text-white">
-                        <th scope="col">Data</th>
-                        <th scope="col">Amido convertido (kg)</th>
-                        <th scope="col">Conversão do amido (%)</th>
-                        <th scope="col">Tempo de liquefação (h)</th>
-                        <th scope="col">Volume da reação (L)</th>
-                        <th scope="col">Concentração final de amido (kg/L)</th>
-                        <th scope="col">ART gerada (kg)</th>
-                        <th scope="col">Conversão percentual</th>
-
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for dado_moagem in dados_moagem %}
+            <div class="table-responsive mb-4">
+                <table id="liquefacaoTable" class="table bg-white table-striped table-bordered">
+                    <thead class="bg-info text-white">
                         <tr>
-                            <td>{{ dado_moagem.data }}</td>
-
-                            {% if dado_moagem.liquefacao %}
-                                <td>{{ dado_moagem.liquefacao.amido_convertido }}</td>
-                                <td>{{ dado_moagem.liquefacao.conversao_amido }}</td>
-                                <td>{{ dado_moagem.liquefacao.tempo_liquefacao }}</td>
-                                <td>{{ dado_moagem.liquefacao.volume_reacao_L }}</td>
-                                <td>{{ dado_moagem.liquefacao.conc_amido_final }}</td>
-                                <td>{{ dado_moagem.liquefacao.art_gerada }}</td>  <!-- Glicose gerada (art_gerada) -->
-                                <td>{{ dado_moagem.liquefacao.conversao_percentual }}</td>  <!-- Conversão percentual -->
-                            {% else %}
-                                <td colspan="5">Sem dados de liquefação</td>
-                            {% endif %}
+                            <th>Data</th>
+                            <th>Amido convertido (kg)</th>
+                            <th>Conversão do amido (%)</th>
+                            <th>Tempo de liquefação (h)</th>
+                            <th>Volume da reação (L)</th>
+                            <th>Concentração final de amido (kg/L)</th>
+                            <th>ART gerada (kg)</th>
+                            <th>Conversão percentual</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        {% for dado_moagem in dados_moagem %}
+                            <tr>
+                                <td>{{ dado_moagem.data }}</td>
+                                {% if dado_moagem.liquefacao %}
+                                    <td>{{ dado_moagem.liquefacao.amido_convertido }}</td>
+                                    <td>{{ dado_moagem.liquefacao.conversao_amido }}</td>
+                                    <td>{{ dado_moagem.liquefacao.tempo_liquefacao }}</td>
+                                    <td>{{ dado_moagem.liquefacao.volume_reacao_L }}</td>
+                                    <td>{{ dado_moagem.liquefacao.conc_amido_final }}</td>
+                                    <td>{{ dado_moagem.liquefacao.art_gerada }}</td>
+                                    <td>{{ dado_moagem.liquefacao.conversao_percentual }}</td>
+                                {% else %}
+                                    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
-        <div class="p-3" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-around;">
             {% if grafico_liquefacao %}
-            <div id="grafico-liquefacao" style="width:100%;"></div>
-            <script src="{% static '/js/plotly-3.0.1.min.js' %}" charset="utf-8"></script>
-
-            <script>
-                const grafico = {{ grafico_liquefacao|safe }};
-                Plotly.newPlot('grafico-liquefacao', grafico.data, grafico.layout);
-            </script>
+            <div class="mb-4">
+                <div id="grafico-liquefacao" style="width: 100%;"></div>
+                <script src="{% static '/js/plotly-3.0.1.min.js' %}" charset="utf-8"></script>
+                <script>
+                    const grafico = {{ grafico_liquefacao|safe }};
+                    Plotly.newPlot('grafico-liquefacao', grafico.data, grafico.layout);
+                </script>
+            </div>
             {% endif %}
-
         </div>
     </div>
 </div>
 
+<link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const moagemTable = document.querySelector("#moagemTable");
+        if (moagemTable) new simpleDatatables.DataTable(moagemTable);
+
+        const liquefacaoTable = document.querySelector("#liquefacaoTable");
+        if (liquefacaoTable) new simpleDatatables.DataTable(liquefacaoTable);
+    });
+</script>
 
 {% endblock %}
