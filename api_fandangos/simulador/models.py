@@ -25,10 +25,26 @@ class ProcessoLiquefacao(models.Model):
     volume_reacao_L = models.FloatField(null=True, help_text="Volume da reação (L)")
     conc_amido_inicial = models.FloatField(null=True, help_text="Concentração inicial de amido (kg/L)")
     conc_amido_final = models.FloatField(null=True, help_text="Concentração final de amido (kg/L)")
+    art_gerada = models.FloatField(null=True, help_text="Glicose fermentescível (ART) gerada (kg)")
     data = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Liq. de {self.processo.milho_moido} kg de milho moído - {self.conversao_amido:.1f}% convertido"
+        if self.conversao_amido is not None:
+            return f"Liq. de {self.processo.milho_moido} kg de milho moído - {self.conversao_amido:.1f}% convertido"
+        return f"Liq. de {self.processo.milho_moido} kg de milho moído - conversão não calculada"
+
+class CurvaLiquefacao(models.Model):
+    processo_liquefacao = models.ForeignKey(ProcessoLiquefacao, on_delete=models.CASCADE, related_name='curva_dados')
+    tempo_h = models.FloatField(help_text="Tempo (h)")
+    concentracao_amido = models.FloatField(help_text="Concentração de amido (g/L)")
+
+    class Meta:
+        ordering = ['tempo_h']
+
+    def __str__(self):
+        return f"{self.tempo_h} h - {self.concentracao_amido:.2f} g/L"
+
+
     
 class ProcessoMoagem(models.Model):
     quantidade_milho = models.FloatField(null=True)
