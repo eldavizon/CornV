@@ -66,6 +66,9 @@
                         <th scope="col">Tempo de liquefação (h)</th>
                         <th scope="col">Volume da reação (L)</th>
                         <th scope="col">Concentração final de amido (kg/L)</th>
+                        <th scope="col">ART gerada (kg)</th>
+                        <th scope="col">Conversão percentual</th>
+
                     </tr>
                 </thead>
                 <tbody>
@@ -79,6 +82,8 @@
                                 <td>{{ dado_moagem.liquefacao.tempo_liquefacao }}</td>
                                 <td>{{ dado_moagem.liquefacao.volume_reacao_L }}</td>
                                 <td>{{ dado_moagem.liquefacao.conc_amido_final }}</td>
+                                <td>{{ dado_moagem.liquefacao.art_gerada }}</td>  <!-- Glicose gerada (art_gerada) -->
+                                <td>{{ dado_moagem.liquefacao.conversao_percentual }}</td>  <!-- Conversão percentual -->
                             {% else %}
                                 <td colspan="5">Sem dados de liquefação</td>
                             {% endif %}

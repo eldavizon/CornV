@@ -49,6 +49,11 @@ def processo(request):
                 messages.error(request, f"Erro na liquefação: {resultado_liquefacao['erro']}")
                 return redirect('simulador-processo')
 
+            # constantes e variáveis denominadas
+            # fator de hidratação pra converter de amido pra glicose
+            
+            fator_hidratacao = 1.11
+            
             liquefacao = ProcessoLiquefacao.objects.create(
                 processo=form_instance,
                 amido_convertido=resultado_liquefacao["massa_glicose_g"] / 1000,

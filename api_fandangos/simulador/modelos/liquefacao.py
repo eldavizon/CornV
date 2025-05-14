@@ -66,8 +66,10 @@ def simular_liquefacao(massa_milho_moido_kg, tempo_reacao_h=2.0, T=T_operacao, p
         S_final = sol.y[0][-1]
         # Calcula a conversão do amido para glicose (percentual)
         conversao = (S0 - S_final) / S0
-        # Calcula a quantidade de glicose gerada (em gramas)
-        glicose_gerada_g = (S0 - S_final) * volume_L
+         # A quantidade de glicose gerada é a quantidade de amido convertido multiplicada por 1.11
+        glicose_gerada_g = (S0 - S_final) * 1.11 * volume_L  # Multiplicando por 1.11 para converter amido em glicose
+
+
 
         # Retorna os resultados da simulação
         return {

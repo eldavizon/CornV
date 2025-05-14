@@ -8,4 +8,9 @@ window.addEventListener('DOMContentLoaded', event => {
     if (datatablesFS) {
         new simpleDatatables.DataTable(datatablesFS);
     }
+
+    const datatablesSimple2 = document.getElementById('datatablesSimple2');
+    if (datatablesSimple2) {
+        new simpleDatatables.DataTable(datatablesSimple2);
+    }
 });
