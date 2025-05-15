@@ -79,6 +79,7 @@
                             <th>Concentração final de amido (kg/L)</th>
                             <th>ART gerada (kg)</th>
                             <th>Conversão percentual</th>
+                            <th>Enzima (g)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -93,8 +94,10 @@
                                     <td>{{ dado_moagem.liquefacao.conc_amido_final }}</td>
                                     <td>{{ dado_moagem.liquefacao.art_gerada }}</td>
                                     <td>{{ dado_moagem.liquefacao.conversao_percentual }}</td>
+                                    <td>{{ dado_moagem.liquefacao.enzima_usada }}</td>
+
                                 {% else %}
-                                    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
                                 {% endif %}
                             </tr>
                         {% endfor %}

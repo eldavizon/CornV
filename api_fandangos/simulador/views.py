@@ -43,8 +43,18 @@ def processo(request):
             form_instance.energia_total_kj = resultado["energia_total_kJ"]
             form_instance.save()
 
-            resultado_liquefacao = simular_liquefacao(form_instance.milho_moido)
+            # Coleta o modo e os parâmetros
+            modo = form.cleaned_data.get("modo")
+            enzima_g = form.cleaned_data.get("enzima_g")
+            tempo_h = form.cleaned_data.get("tempo_h")
 
+            resultado_liquefacao = simular_liquefacao(
+                massa_milho_kg=form_instance.milho_moido,
+                enzima_g=enzima_g,
+                tempo_h=tempo_h,
+                modo=modo
+            )
+            
             if resultado_liquefacao.get("erro"):
                 messages.error(request, f"Erro na liquefação: {resultado_liquefacao['erro']}")
                 return redirect('simulador-processo')
@@ -63,6 +73,7 @@ def processo(request):
                 conc_amido_inicial=resultado_liquefacao["concentracao_amido_inicial"] / 1000,
                 conc_amido_final=resultado_liquefacao["concentracao_amido_final"] / 1000,
                 art_gerada=resultado_liquefacao["massa_glicose_g"] / 1000,  # mesma coisa que amido convertido (por enquanto)
+                enzima_usada=enzima_g if enzima_g else resultado_liquefacao["enzima_g"],
             )
 
             # Salva os pontos da curva

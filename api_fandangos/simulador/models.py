@@ -26,6 +26,8 @@ class ProcessoLiquefacao(models.Model):
     conc_amido_inicial = models.FloatField(null=True, help_text="Concentração inicial de amido (kg/L)")
     conc_amido_final = models.FloatField(null=True, help_text="Concentração final de amido (kg/L)")
     art_gerada = models.FloatField(null=True, help_text="Glicose fermentescível (ART) gerada (kg)")
+    enzima_usada = models.FloatField(null=True, blank=True, help_text="Enzima utilizada ou necessária (g)")
+
     data = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
