@@ -49,8 +49,7 @@
                             <th>Data</th>
                             <th>Massa de entrada (Kg)</th>
                             <th>Massa moída (Kg)</th>
-                            <th>Eficiência (%)</th>
-                            <th>Energia total gasta (kJ)</th>
+                            <th>Energia total gasta (kWh)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -59,7 +58,6 @@
                                 <td>{{ dado_moagem.data }}</td>
                                 <td>{{ dado_moagem.quantidade_milho }}</td>
                                 <td>{{ dado_moagem.milho_moido }}</td>
-                                <td>{{ dado_moagem.eficiencia }}</td>
                                 <td>{{ dado_moagem.energia_total }}</td>
                             </tr>
                         {% endfor %}

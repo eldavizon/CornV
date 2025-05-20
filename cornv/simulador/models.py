@@ -51,7 +51,6 @@ class CurvaLiquefacao(models.Model):
 class ProcessoMoagem(models.Model):
     quantidade_milho = models.FloatField(null=True)
     milho_moido = models.FloatField(null=True)
-    eficiencia = models.FloatField(null=True)
     energia_total = models.FloatField(null=True)
     data = models.DateTimeField(auto_now_add=True, null=True)
 

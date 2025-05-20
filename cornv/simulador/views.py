@@ -39,8 +39,7 @@ def processo(request):
             resultado = calcular_moagem(quantidade)
 
             form_instance.milho_moido = resultado["massa_moida"]
-            form_instance.eficiencia = resultado["eficiencia_percentual"]
-            form_instance.energia_total_kj = resultado["energia_total_kJ"]
+            form_instance.energia_total = resultado["energia_total_kWh"]
             form_instance.save()
 
             # Coleta o modo e os parâmetros
@@ -84,7 +83,7 @@ def processo(request):
                     concentracao_amido=concentracao
                 )
 
-            # ✅ Gera gráfico diretamente na view, agora puxando as informações da CurvaLiquefacao
+            # Gera gráfico diretamente na view, agora puxando as informações da CurvaLiquefacao
             curva_dados = CurvaLiquefacao.objects.filter(processo_liquefacao=liquefacao)
             tempos = [d.tempo_h for d in curva_dados]
             concentracoes = [d.concentracao_amido for d in curva_dados]
