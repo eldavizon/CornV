@@ -1,0 +1,76 @@
+{% extends 'partials/base.html' %}
+{% block title %} Página de Produtos Químicos{% endblock %}
+
+{% load crispy_forms_tags %}
+
+
+<!--Block de produtos quimicos-->
+
+{% block content%} 
+
+<!--Table-->
+<div class="container">
+    <div class="row my-4">
+        <div class="col-md-4">
+            
+            {% for message in messages %}
+            {% if message%}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endif %}
+            {% endfor %}
+
+            <div class="border bg-white p-3">
+                <h4>Cadastrar produto químico</h4>
+                <hr>
+                <form method="POST" action="">
+                    
+                    {% csrf_token %}
+
+                    {{ form|crispy }}
+
+                    <input class="btn btn-success btn-block" type="submit" value="Add Product">
+
+                </form>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <table class="table bg-white">
+                <thead class="bg-info">
+                    <tr class="text-white">
+                        <th scope="col">Nome</th>
+                        <th scope="col">Classificação</th>
+                        <th scope="col">Quantidade</th>
+                        <th scope="col">Activity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+
+                    <tr>
+                        <td>{{item.nome}}</td>
+                        <td>{{item.classificacao}}</td>
+                        <td>{{item.quantidade}}</td>
+                        <td>
+                            <a class="btn btn-info btn-sm" href="{% url 'estatisticas-produtos-update' item.id %}">Editar</a>
+                            <a class="btn btn-danger btn-sm" href="{% url 'estatisticas-produtos-delete' item.id %}">Excluir</a>
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+                    
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+
+
+<!--End Table-->
+
+{% endblock %}
+
+<!--Endblock-->
