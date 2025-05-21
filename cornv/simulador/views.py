@@ -15,6 +15,12 @@ import plotly.graph_objects as go
 #View de processo
 from .modelos.moagem import calcular_moagem
 from .modelos.liquefacao import simular_liquefacao  # ajuste o caminho conforme sua estrutura
+from django.db.models import Prefetch
+from django.shortcuts import get_object_or_404
+from django.core.serializers.json import DjangoJSONEncoder
+
+
+
 
 
 # Create your views here.
@@ -25,9 +31,70 @@ def index(request):
 
 @login_required(login_url='user-login')
 def processo(request):
-    dados_moagem = ProcessoMoagem.objects.all()
+    dados_moagem = ProcessoMoagem.objects.all().order_by("-data")
     dados_liquefacao = ProcessoLiquefacao.objects.all()
+    ultimas_simulacoes = ProcessoMoagem.objects.filter(liquefacao__isnull=False).order_by("-data")[:10]
+    
+    # Serializa os dados para uso no JavaScript
+    simulacoes_json = json.dumps([
+        {
+            "id": p.id,
+            "data": p.data.strftime('%Y-%m-%d') if p.data else None,
+            "milho": p.quantidade_milho,
+            "milho_moido": p.milho_moido,
+            "energia": p.energia_total,
+            "liquefacao": {
+                "amido": p.liquefacao.amido_convertido,
+                "conversao_amido": p.liquefacao.conversao_amido,
+                "tempo": p.liquefacao.tempo_liquefacao,
+                "volume": p.liquefacao.volume_reacao_L,
+                "conc_amido": p.liquefacao.conc_amido_final,
+                "art": p.liquefacao.art_gerada,
+                "percentual": p.liquefacao.conversao_amido,
+                "enzima": p.liquefacao.enzima_usada,
+                "grafico": [
+                    {
+                        "tempo": d.tempo_h,
+                        "conc": d.concentracao_amido
+                    } for d in p.liquefacao.curva_dados.all()
+                ]
+            } if hasattr(p, 'liquefacao') else None
+        }
+        for p in ultimas_simulacoes
+    ], cls=DjangoJSONEncoder)
+
     grafico_liquefacao_json = None
+    simulacao_selecionada = None
+
+    # ✅ Verifica se houve seleção de simulação via GET
+    simulacao_id = request.GET.get("simulacao_id")
+    if simulacao_id:
+        simulacao_selecionada = get_object_or_404(ProcessoMoagem, pk=simulacao_id)
+
+        if simulacao_selecionada.liquefacao:
+            curva_dados = CurvaLiquefacao.objects.filter(processo_liquefacao=simulacao_selecionada.liquefacao)
+            tempos = [d.tempo_h for d in curva_dados]
+            concentracoes = [d.concentracao_amido for d in curva_dados]
+
+            fig = Figure(
+                data=[Scatter(
+                    x=tempos,
+                    y=concentracoes,
+                    mode='lines+markers',
+                    name='Amido (g/L)',
+                    line=dict(color='orange', width=2),
+                    fill='tozeroy',
+                    fillcolor='rgba(255,165,0,0.2)'
+                )],
+                layout=Layout(
+                    title='Cinética da Liquefação Enzimática',
+                    xaxis=dict(title='Tempo (h)'),
+                    yaxis=dict(title='Concentração de Amido (g/L)'),
+                    height=400
+                )
+            )
+
+            grafico_liquefacao_json = json.dumps(fig, cls=PlotlyJSONEncoder)
 
     if request.method == "POST":
         form = ProcessoMoagemForm(request.POST)
@@ -42,7 +109,6 @@ def processo(request):
             form_instance.energia_total = resultado["energia_total_kWh"]
             form_instance.save()
 
-            # Coleta o modo e os parâmetros
             modo = form.cleaned_data.get("modo")
             enzima_g = form.cleaned_data.get("enzima_g")
             tempo_h = form.cleaned_data.get("tempo_h")
@@ -53,16 +119,13 @@ def processo(request):
                 tempo_h=tempo_h,
                 modo=modo
             )
-            
+
             if resultado_liquefacao.get("erro"):
                 messages.error(request, f"Erro na liquefação: {resultado_liquefacao['erro']}")
                 return redirect('simulador-processo')
 
-            # constantes e variáveis denominadas
-            # fator de hidratação pra converter de amido pra glicose
-            
             fator_hidratacao = 1.11
-            
+
             liquefacao = ProcessoLiquefacao.objects.create(
                 processo=form_instance,
                 amido_convertido=resultado_liquefacao["massa_glicose_g"] / 1000,
@@ -71,11 +134,10 @@ def processo(request):
                 volume_reacao_L=form_instance.milho_moido / 1.05,
                 conc_amido_inicial=resultado_liquefacao["concentracao_amido_inicial"] / 1000,
                 conc_amido_final=resultado_liquefacao["concentracao_amido_final"] / 1000,
-                art_gerada=resultado_liquefacao["massa_glicose_g"] / 1000,  # mesma coisa que amido convertido (por enquanto)
+                art_gerada=resultado_liquefacao["massa_glicose_g"] / 1000,
                 enzima_usada=enzima_g if enzima_g else resultado_liquefacao["enzima_g"],
             )
 
-            # Salva os pontos da curva
             for tempo, concentracao in zip(resultado_liquefacao["dados_t"], resultado_liquefacao["dados_S"]):
                 CurvaLiquefacao.objects.create(
                     processo_liquefacao=liquefacao,
@@ -83,7 +145,6 @@ def processo(request):
                     concentracao_amido=concentracao
                 )
 
-            # Gera gráfico diretamente na view, agora puxando as informações da CurvaLiquefacao
             curva_dados = CurvaLiquefacao.objects.filter(processo_liquefacao=liquefacao)
             tempos = [d.tempo_h for d in curva_dados]
             concentracoes = [d.concentracao_amido for d in curva_dados]
@@ -110,19 +171,28 @@ def processo(request):
 
             messages.success(request, f'{quantidade} kg de milho foram moídos e liquefeitos.')
 
+            return redirect(f"{request.path}?simulacao_id={form_instance.id}")
+        
         else:
             print("🔴 Formulário de processo inválido")
     else:
         form = ProcessoMoagemForm()
+        
+    
 
     context = {
         'dados_moagem': dados_moagem,
         'dados_liquefacao': dados_liquefacao,
         'form': form,
         'grafico_liquefacao': grafico_liquefacao_json,
+        'ultimas_simulacoes': ultimas_simulacoes,
+        'simulacao_selecionada': simulacao_selecionada,
+        'simulacoes_json': simulacoes_json,
     }
 
     return render(request, 'simulador/processo.html', context)
+
+
 
 
 @login_required(login_url='user-login', ) # está configurado nas settings > login_url.
