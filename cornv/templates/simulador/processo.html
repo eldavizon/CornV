@@ -46,6 +46,10 @@
             <select id="selecao-simulacao" class="form-select" onchange="exibirSimulacaoSelecionada(this)">
                 {% for simulacao in ultimas_simulacoes %}
                     <option value="{{ simulacao.id }}">{{ simulacao.data }} - {{ simulacao.quantidade_milho }} kg</option>
+
+                        
+
+
                 {% endfor %}
             </select>
         </div>
@@ -78,9 +82,6 @@
 
 
 <script>
-    // Variável global com dados das simulações, inserida pelo Django no template
-    const simulacoes = {{ simulacoes_json|safe }};
-
     document.addEventListener("DOMContentLoaded", function () {
         console.log("DOM carregado");
 
@@ -115,82 +116,62 @@
         }
     });
 
-    // Função que atualiza os dados exibidos na página quando uma simulação é selecionada
+    const simulacoes = {{ simulacoes_json|safe }};
+
     function exibirSimulacaoSelecionada(select) {
-    // Pega o id selecionado no select e converte para número inteiro
-    const idSelecionado = parseInt(select.value);
-    console.log("Selecionando simulação com id:", idSelecionado);
+        const id = select.value;
+        const simulacao = simulacoes.find(s => s.id == id);
+        if (!simulacao) return;
 
-    // Busca a simulação na lista 'simulacoes' pelo id
-    const simulacao = simulacoes.find(s => s.id === idSelecionado);
+        document.getElementById("data-simulacao").textContent = simulacao.data;
+        document.getElementById("milho").textContent = simulacao.milho;
+        document.getElementById("milho-moido").textContent = simulacao.milho_moido;
+        document.getElementById("energia").textContent = simulacao.energia;
 
-    // Se não encontrar a simulação, exibe erro e sai da função
-    if (!simulacao) {
-        console.error("Simulação não encontrada para o id:", idSelecionado);
-        return;
+        if (simulacao.liquefacao) {
+            const l = simulacao.liquefacao;
+            document.getElementById("amido").textContent = l.amido;
+            document.getElementById("conversao-amido").textContent = l.conversao_amido;
+            document.getElementById("tempo").textContent = l.tempo;
+            document.getElementById("volume").textContent = l.volume;
+            document.getElementById("conc-amido").textContent = l.conc_amido;
+            document.getElementById("art").textContent = l.art;
+            document.getElementById("percentual").textContent = l.percentual;
+            document.getElementById("enzima").textContent = l.enzima;
+            document.getElementById("dados-liquefacao").classList.remove("d-none");
+
+            // Renderiza o gráfico com Plotly
+            const trace = {
+                x: l.grafico.map(p => p.tempo),
+                y: l.grafico.map(p => p.conc),
+                type: 'scatter',
+                mode: 'lines+markers',
+                fill: 'tozeroy',
+                line: { color: 'orange' },
+                name: 'Amido (g/L)'
+            };
+            const layout = {
+                title: 'Cinética da Liquefação Enzimática',
+                xaxis: { title: 'Tempo (h)' },
+                yaxis: { title: 'Concentração de Amido (g/L)' },
+                height: 400
+            };
+            Plotly.newPlot('grafico-liquefacao', [trace], layout);
+        }
+
+        document.getElementById("card-simulacao").classList.remove("d-none");
     }
 
-    // Atualiza os dados básicos no card HTML
-    document.getElementById('data-simulacao').textContent = simulacao.data;
-    document.getElementById('milho').textContent = simulacao.milho;
-    document.getElementById('milho-moido').textContent = simulacao.milho_moido;
-    document.getElementById('energia').textContent = simulacao.energia;
-
-    // Mostra o card com os dados
-    document.getElementById('card-simulacao').classList.remove('d-none');
-
-    console.log("Dados da simulação:", simulacao);
-
-    // Verifica se existem dados de liquefação
-    if (simulacao.liquefacao) {
-        console.log("Simulação possui dados de liquefação:", simulacao.liquefacao);
-
-        // Mostra a seção de dados de liquefação
-        document.getElementById('dados-liquefacao').classList.remove('d-none');
-
-        // Preenche os dados de liquefação nos elementos HTML
-        const liquef = simulacao.liquefacao;
-        document.getElementById('amido').textContent = liquef.amido;
-        document.getElementById('conversao-amido').textContent = liquef.conversao_amido;
-        document.getElementById('tempo').textContent = liquef.tempo;
-        document.getElementById('volume').textContent = liquef.volume;
-        document.getElementById('conc-amido').textContent = liquef.conc_amido;
-        document.getElementById('art').textContent = liquef.art;
-        document.getElementById('percentual').textContent = liquef.percentual;
-        document.getElementById('enzima').textContent = liquef.enzima;
-
-        // Pega os dados do gráfico
-        const grafico = liquef.grafico;
-        console.log("Dados do gráfico:", grafico);
-
-        // Valida o objeto do gráfico e seus dados
-        if (!grafico) {
-            console.error("Objeto gráfico não encontrado.");
-            document.getElementById('grafico-liquefacao').innerHTML = 'Dados do gráfico indisponíveis.';
-            return;
+    // Auto-selecionar se uma simulação estiver carregada
+    window.addEventListener('DOMContentLoaded', () => {
+        const selectedSimId = "{{ simulacao_selecionada.id|default:'' }}";
+        if (selectedSimId) {
+            document.getElementById("selecao-simulacao").value = selectedSimId;
+            exibirSimulacaoSelecionada(document.getElementById("selecao-simulacao"));
         }
-        if (!Array.isArray(grafico.data) || grafico.data.length === 0) {
-            console.error("Dados do gráfico inválidos ou vazios.");
-            document.getElementById('grafico-liquefacao').innerHTML = 'Dados do gráfico inválidos ou vazios.';
-            return;
-        }
+    });
 
-        // Tenta plotar o gráfico com Plotly
-        try {
-            Plotly.newPlot('grafico-liquefacao', grafico.data, grafico.layout);
-            console.log("Gráfico plotado com sucesso.");
-        } catch (e) {
-            console.error("Erro ao plotar gráfico:", e);
-            document.getElementById('grafico-liquefacao').innerHTML = 'Erro ao gerar o gráfico.';
-        }
-
-    } else {
-        // Se não houver dados de liquefação, esconde essa seção e limpa o gráfico
-        console.warn("Simulação não possui dados de liquefação.");
-        document.getElementById('dados-liquefacao').classList.add('d-none');
-        document.getElementById('grafico-liquefacao').innerHTML = '';
-    }
-}
+    
 
 </script>
 
