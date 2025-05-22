@@ -96,100 +96,104 @@
 <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
 <script src="{% static '/js/plotly-3.0.1.min.js' %}" charset="utf-8"></script>
 
-
 <script>
+    // Aguarda o carregamento completo do DOM (estrutura HTML)
     document.addEventListener("DOMContentLoaded", function () {
         console.log("DOM carregado");
 
-        // Inicializa a tabela de moagem, se existir
-        const moagemTable = document.querySelector("#moagemTable");
-        if (moagemTable) {
-            console.log("Inicializando tabela moagemTable");
-            new simpleDatatables.DataTable(moagemTable);
-        } else {
-            console.log("moagemTable não encontrado");
-        }
-
-        // Inicializa a tabela de liquefação, se existir
-        const liquefacaoTable = document.querySelector("#liquefacaoTable");
-        if (liquefacaoTable) {
-            console.log("Inicializando tabela liquefacaoTable");
-            new simpleDatatables.DataTable(liquefacaoTable);
-        } else {
-            console.log("liquefacaoTable não encontrado");
-        }
-
         console.log("Variável simulacoes:", simulacoes);
 
-        // Se existirem simulações, seleciona a primeira automaticamente e exibe os dados
+        // Se houver pelo menos uma simulação disponível
         if (simulacoes.length > 0) {
+            // Pega o <select> do HTML onde o usuário escolhe a simulação
             const select = document.getElementById('selecao-simulacao');
-            select.value = simulacoes[0].id;  // seleciona a primeira opção
+
+            // Define o valor selecionado como o ID da primeira simulação
+            select.value = simulacoes[0].id;
+
             console.log("Selecionando primeira simulação com id:", simulacoes[0].id);
-            exibirSimulacaoSelecionada(select);  // exibe gráfico e dados da simulação selecionada
+
+            // Chama a função que atualiza a tela com os dados da simulação selecionada
+            exibirSimulacaoSelecionada(select);
         } else {
             console.log("Nenhuma simulação encontrada");
         }
     });
 
+    // Essa variável é injetada pelo Django como JSON (vindo do back-end para o front-end)
     const simulacoes = {{ simulacoes_json|safe }};
 
+    // Função que mostra os dados de uma simulação na tela
     function exibirSimulacaoSelecionada(select) {
-    const id = select.value;
-    const simulacao = simulacoes.find(s => s.id == id);
-    if (!simulacao) return;
+        const id = select.value;  // Pega o ID da simulação selecionada
+        const simulacao = simulacoes.find(s => s.id == id);  // Busca no array de simulações
 
-    document.getElementById("data-simulacao").textContent = simulacao.data;
-    document.getElementById("milho").textContent = parseFloat(simulacao.milho).toFixed(4);
-    document.getElementById("milho-moido").textContent = parseFloat(simulacao.milho_moido).toFixed(4);
-    document.getElementById("energia").textContent = parseFloat(simulacao.energia).toFixed(2);
+        if (!simulacao) return;  // Se não encontrar, sai da função
 
-    if (simulacao.liquefacao) {
-        const l = simulacao.liquefacao;
-        document.getElementById("amido").textContent = parseFloat(l.amido).toFixed(4);
-        document.getElementById("conversao-amido").textContent = parseFloat(l.conversao_amido).toFixed(2);
-        document.getElementById("tempo").textContent = parseFloat(l.tempo).toFixed(1);
-        document.getElementById("volume").textContent = parseFloat(l.volume).toFixed(3);
-        document.getElementById("conc-amido").textContent = parseFloat(l.conc_amido).toFixed(4);
-        document.getElementById("art").textContent = parseFloat(l.art).toFixed(4);
-        document.getElementById("percentual").textContent = parseFloat(l.percentual).toFixed(2);
-        document.getElementById("enzima").textContent = parseFloat(l.enzima).toFixed(4);
-        document.getElementById("dados-liquefacao").classList.remove("d-none");
+        // Atualiza os campos do HTML com os dados da simulação
+        document.getElementById("data-simulacao").textContent = simulacao.data;
+        document.getElementById("milho").textContent = parseFloat(simulacao.milho).toFixed(4);
+        document.getElementById("milho-moido").textContent = parseFloat(simulacao.milho_moido).toFixed(4);
+        document.getElementById("energia").textContent = parseFloat(simulacao.energia).toFixed(2);
 
-        // Gráfico
-        const trace = {
-            x: l.grafico.map(p => p.tempo),
-            y: l.grafico.map(p => parseFloat(p.conc).toFixed(4)),
-            type: 'scatter',
-            mode: 'lines+markers',
-            fill: 'tozeroy',
-            line: { color: 'orange' },
-            name: 'Amido (g/L)'
-        };
-        const layout = {
-            title: 'Cinética da Liquefação Enzimática',
-            xaxis: { title: 'Tempo (h)' },
-            yaxis: { title: 'Concentração de Amido (g/L)' },
-            height: 400
-        };
-        Plotly.newPlot('grafico-liquefacao', [trace], layout);
-    }
+        // Se a simulação tiver dados de liquefação
+        if (simulacao.liquefacao) {
+            const l = simulacao.liquefacao;
 
+            // Preenche os campos com os dados da liquefação
+            document.getElementById("amido").textContent = parseFloat(l.amido).toFixed(4);
+            document.getElementById("conversao-amido").textContent = parseFloat(l.conversao_amido).toFixed(2);
+            document.getElementById("tempo").textContent = parseFloat(l.tempo).toFixed(1);
+            document.getElementById("volume").textContent = parseFloat(l.volume).toFixed(3);
+            document.getElementById("conc-amido").textContent = parseFloat(l.conc_amido).toFixed(4);
+            document.getElementById("art").textContent = parseFloat(l.art).toFixed(4);
+            document.getElementById("percentual").textContent = parseFloat(l.percentual).toFixed(2);
+            document.getElementById("enzima").textContent = parseFloat(l.enzima).toFixed(4);
+
+            // Exibe o bloco com os dados de liquefação
+            document.getElementById("dados-liquefacao").classList.remove("d-none");
+
+            // Cria um gráfico com a curva de concentração de amido ao longo do tempo
+            const trace = {
+                x: l.grafico.map(p => p.tempo),  // Eixo X: tempo
+                y: l.grafico.map(p => parseFloat(p.conc).toFixed(4)),  // Eixo Y: concentração
+                type: 'scatter',
+                mode: 'lines+markers',
+                fill: 'tozeroy',  // Preenche abaixo da curva
+                line: { color: 'orange' },
+                name: 'Amido (g/L)'
+            };
+
+            const layout = {
+                title: 'Cinética da Liquefação Enzimática',
+                xaxis: { title: 'Tempo (h)' },
+                yaxis: { title: 'Concentração de Amido (g/L)' },
+                height: 400
+            };
+
+            // Renderiza o gráfico no elemento com id 'grafico-liquefacao'
+            Plotly.newPlot('grafico-liquefacao', [trace], layout);
+        }
+
+        // Exibe o card de simulação na interface
         document.getElementById("card-simulacao").classList.remove("d-none");
     }
 
-    // Auto-selecionar se uma simulação estiver carregada
+    // Evento adicional para lidar com simulações pré-selecionadas vindas do backend
     window.addEventListener('DOMContentLoaded', () => {
         const selectedSimId = "{{ simulacao_selecionada.id|default:'' }}";
+
+        // Se houver uma simulação já selecionada no backend (via contexto Django)
         if (selectedSimId) {
+            // Marca essa simulação no select
             document.getElementById("selecao-simulacao").value = selectedSimId;
+
+            // Exibe os dados dessa simulação
             exibirSimulacaoSelecionada(document.getElementById("selecao-simulacao"));
         }
     });
-
-    
-
 </script>
+
 
 
 {% endblock %}

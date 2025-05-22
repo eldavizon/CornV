@@ -29,13 +29,20 @@ from django.core.serializers.json import DjangoJSONEncoder
 def index(request):
     return render(request, 'simulador/index.html')
 
+
+# está configurado nas settings > login_url.
 @login_required(login_url='user-login')
 def processo(request):
+    # Recupera todos os processos de moagem ordenados da data mais recente para a mais antiga
     dados_moagem = ProcessoMoagem.objects.all().order_by("-data")
-    dados_liquefacao = ProcessoLiquefacao.objects.all()
-    ultimas_simulacoes = ProcessoMoagem.objects.filter(liquefacao__isnull=False).order_by("-data")[:10]
     
-    # Serializa os dados para uso no JavaScript
+    # Recupera todos os dados de liquefação
+    dados_liquefacao = ProcessoLiquefacao.objects.all()
+
+    # Pega as últimas 10 simulações que já possuem dados de liquefação associados
+    ultimas_simulacoes = ProcessoMoagem.objects.filter(liquefacao__isnull=False).order_by("-data")[:10]
+
+    # Serializa as últimas simulações para enviar ao JavaScript (por exemplo, para exibição em gráficos interativos)
     simulacoes_json = json.dumps([
         {
             "id": p.id,
@@ -63,14 +70,16 @@ def processo(request):
         for p in ultimas_simulacoes
     ], cls=DjangoJSONEncoder)
 
+    # Inicializa variáveis de controle
     grafico_liquefacao_json = None
     simulacao_selecionada = None
 
-    # ✅ Verifica se houve seleção de simulação via GET
+    # ⚠️ Caso o usuário tenha clicado para visualizar uma simulação anterior
     simulacao_id = request.GET.get("simulacao_id")
     if simulacao_id:
         simulacao_selecionada = get_object_or_404(ProcessoMoagem, pk=simulacao_id)
 
+        # Se a simulação tiver dados de liquefação, gera o gráfico Plotly da curva de concentração
         if simulacao_selecionada.liquefacao:
             curva_dados = CurvaLiquefacao.objects.filter(processo_liquefacao=simulacao_selecionada.liquefacao)
             tempos = [d.tempo_h for d in curva_dados]
@@ -94,25 +103,34 @@ def processo(request):
                 )
             )
 
+            # Serializa o gráfico para o front-end
             grafico_liquefacao_json = json.dumps(fig, cls=PlotlyJSONEncoder)
 
+    # Se o formulário foi enviado (POST)
     if request.method == "POST":
         form = ProcessoMoagemForm(request.POST)
 
         if form.is_valid():
+            # Cria instância do formulário sem salvar ainda no banco
             form_instance = form.save(commit=False)
 
+            # Extrai quantidade de milho informada
             quantidade = float(form.cleaned_data["quantidade_milho"])
+
+            # Calcula moagem com base nessa quantidade
             resultado = calcular_moagem(quantidade)
 
+            # Preenche os campos de moagem
             form_instance.milho_moido = resultado["massa_moida"]
             form_instance.energia_total = resultado["energia_total_kWh"]
-            form_instance.save()
+            form_instance.save()  # Agora salva no banco
 
+            # Extrai dados para simulação de liquefação
             modo = form.cleaned_data.get("modo")
             enzima_g = form.cleaned_data.get("enzima_g")
             tempo_h = form.cleaned_data.get("tempo_h")
 
+            # Chama a função de simulação da liquefação
             resultado_liquefacao = simular_liquefacao(
                 massa_milho_kg=form_instance.milho_moido,
                 enzima_g=enzima_g,
@@ -120,12 +138,15 @@ def processo(request):
                 modo=modo
             )
 
+            # Se houve erro na simulação, exibe mensagem e redireciona
             if resultado_liquefacao.get("erro"):
                 messages.error(request, f"Erro na liquefação: {resultado_liquefacao['erro']}")
                 return redirect('simulador-processo')
 
+            # Fator de hidratação para estimar volume de reação
             fator_hidratacao = 1.11
 
+            # Cria instância de ProcessoLiquefacao vinculada ao processo de moagem atual
             liquefacao = ProcessoLiquefacao.objects.create(
                 processo=form_instance,
                 amido_convertido=resultado_liquefacao["massa_glicose_g"] / 1000,
@@ -138,6 +159,7 @@ def processo(request):
                 enzima_usada=enzima_g if enzima_g else resultado_liquefacao["enzima_g"],
             )
 
+            # Cria a curva de dados ponto a ponto no banco
             for tempo, concentracao in zip(resultado_liquefacao["dados_t"], resultado_liquefacao["dados_S"]):
                 CurvaLiquefacao.objects.create(
                     processo_liquefacao=liquefacao,
@@ -145,6 +167,7 @@ def processo(request):
                     concentracao_amido=concentracao
                 )
 
+            # Gera novamente o gráfico com os dados recém-salvos
             curva_dados = CurvaLiquefacao.objects.filter(processo_liquefacao=liquefacao)
             tempos = [d.tempo_h for d in curva_dados]
             concentracoes = [d.concentracao_amido for d in curva_dados]
@@ -169,17 +192,20 @@ def processo(request):
 
             grafico_liquefacao_json = json.dumps(fig, cls=PlotlyJSONEncoder)
 
+            # Mensagem de sucesso para o usuário
             messages.success(request, f'{quantidade} kg de milho foram moídos e liquefeitos.')
 
+            # Redireciona para a mesma página, mas passando o ID da nova simulação via GET
             return redirect(f"{request.path}?simulacao_id={form_instance.id}")
         
         else:
             print("🔴 Formulário de processo inválido")
-    else:
-        form = ProcessoMoagemForm()
-        
-    
 
+    else:
+        # Se não for POST, apenas inicializa o formulário vazio
+        form = ProcessoMoagemForm()
+    
+    # Dados para enviar ao template HTML
     context = {
         'dados_moagem': dados_moagem,
         'dados_liquefacao': dados_liquefacao,
@@ -190,8 +216,8 @@ def processo(request):
         'simulacoes_json': simulacoes_json,
     }
 
+    # Renderiza a página
     return render(request, 'simulador/processo.html', context)
-
 
 
 
