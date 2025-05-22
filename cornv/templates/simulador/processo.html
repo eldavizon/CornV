@@ -20,18 +20,35 @@
 </script>
 
 <div class="container-fluid mt-4 p-3">
-    <div class="row justify-content-center mb-4">
-        <div class="col-lg-3 col-md-4 col-sm-12 mb-3">
-            {% for message in messages %}
-            {% if message %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-            {% endif %}
-            {% endfor %}
+    <div class="row justify-content-between align-items-center mb-4">
+        <!-- Título -->
+        <div class="col">
+            <h1 class="mb-0">Simulação de <span id="data-simulacao"> </span></h1>
+        </div>
 
+        <!-- Select no canto superior direito -->
+        <div class="col-auto">
+            <label for="selecao-simulacao" class="form-label"><strong>Selecionar simulação:</strong></label>
+            <select id="selecao-simulacao" class="form-select form-select-sm" onchange="exibirSimulacaoSelecionada(this)">
+                {% for simulacao in ultimas_simulacoes %}
+                    <option value="{{ simulacao.id }}">{{ simulacao.data }} - {{ simulacao.quantidade_milho }} kg</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Mensagens -->
+    {% for message in messages %}
+        {% if message %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endif %}
+    {% endfor %}
+
+    <div class="row">
+        <!-- Formulário de moagem -->
+        <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
             <div class="border bg-white p-3 h-100">
-                <h4>Moer milho</h4>
+                <h3>Moer milho</h3>
                 <hr>
                 <form method="POST" action="">
                     {% csrf_token %}
@@ -41,93 +58,138 @@
             </div>
         </div>
 
-        <div class="col-lg-9 col-md-8 col-sm-12">
-            <div class="table-responsive mb-4">
-                <table id="moagemTable" class="table bg-white table-striped table-bordered">
-                    <thead class="bg-info text-white">
-                        <tr>
-                            <th>Data</th>
-                            <th>Massa de entrada (Kg)</th>
-                            <th>Massa moída (Kg)</th>
-                            <th>Energia total gasta (kWh)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for dado_moagem in dados_moagem %}
-                            <tr>
-                                <td>{{ dado_moagem.data }}</td>
-                                <td>{{ dado_moagem.quantidade_milho }}</td>
-                                <td>{{ dado_moagem.milho_moido }}</td>
-                                <td>{{ dado_moagem.energia_total }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <!-- Card de Moagem -->
+        <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+            <div id="card-simulacao" class="card bg-success text-white p-4 d-none h-100">
+                <h4 class="card-title">Moagem</h4>
+                <h5><strong>Milho:</strong> <span id="milho"></span> kg</h5>
+                <h5><strong>Milho moído:</strong> <span id="milho-moido"></span> kg</h5>
+                <h5><strong>Energia total:</strong> <span id="energia"></span> kWh</h5>
             </div>
-
-            <div class="table-responsive mb-4">
-                <table id="liquefacaoTable" class="table bg-white table-striped table-bordered">
-                    <thead class="bg-info text-white">
-                        <tr>
-                            <th>Data</th>
-                            <th>Amido convertido (kg)</th>
-                            <th>Conversão do amido (%)</th>
-                            <th>Tempo de liquefação (h)</th>
-                            <th>Volume da reação (L)</th>
-                            <th>Concentração final de amido (kg/L)</th>
-                            <th>ART gerada (kg)</th>
-                            <th>Conversão percentual</th>
-                            <th>Enzima (g)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for dado_moagem in dados_moagem %}
-                            <tr>
-                                <td>{{ dado_moagem.data }}</td>
-                                {% if dado_moagem.liquefacao %}
-                                    <td>{{ dado_moagem.liquefacao.amido_convertido }}</td>
-                                    <td>{{ dado_moagem.liquefacao.conversao_amido }}</td>
-                                    <td>{{ dado_moagem.liquefacao.tempo_liquefacao }}</td>
-                                    <td>{{ dado_moagem.liquefacao.volume_reacao_L }}</td>
-                                    <td>{{ dado_moagem.liquefacao.conc_amido_final }}</td>
-                                    <td>{{ dado_moagem.liquefacao.art_gerada }}</td>
-                                    <td>{{ dado_moagem.liquefacao.conversao_percentual }}</td>
-                                    <td>{{ dado_moagem.liquefacao.enzima_usada }}</td>
-
-                                {% else %}
-                                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                {% endif %}
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            {% if grafico_liquefacao %}
-            <div class="mb-4">
-                <div id="grafico-liquefacao" style="width: 100%;"></div>
-                <script src="{% static '/js/plotly-3.0.1.min.js' %}" charset="utf-8"></script>
-                <script>
-                    const grafico = {{ grafico_liquefacao|safe }};
-                    Plotly.newPlot('grafico-liquefacao', grafico.data, grafico.layout);
-                </script>
-            </div>
-            {% endif %}
         </div>
+
+        <!-- Card de Liquefação -->
+        <div class="col-lg-4 col-md-12 col-sm-12 mb-3">
+            <div id="dados-liquefacao" class="card border-0 text-white p-4 d-none h-100" style="background-color: #6d1a1a;">
+            <h4 class="card-title">Liquefação</h4>
+            <h5><strong>Amido convertido:</strong> <span id="amido"></span> kg</h5>
+            <h5><strong>Conversão do amido:</strong> <span id="conversao-amido"></span>%</h5>
+            <h5><strong>Tempo:</strong> <span id="tempo"></span> h</h5>
+            <h5><strong>Volume da reação:</strong> <span id="volume"></span> L</h5>
+            <h5><strong>Conc. amido final:</strong> <span id="conc-amido"></span> kg/L</h5>
+            <h5><strong>ART gerada:</strong> <span id="art"></span> kg</h5>
+            <h5><strong>Conversão percentual:</strong> <span id="percentual"></span>%</h5>
+            <h5><strong>Enzima:</strong> <span id="enzima"></span> g</h5>
+        </div>
+        
+    </div>
+
+    <!-- Gráfico -->
+    <div class="card bg-white border p-3 mt-3">
+        <h5 class="mb-3">Gráfico de Liquefação (ART x Tempo)</h5>
+        <div id="grafico-liquefacao" style="width: 100%; height: 400px;"></div>
     </div>
 </div>
 
+
 <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
+<script src="{% static '/js/plotly-3.0.1.min.js' %}" charset="utf-8"></script>
+
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const moagemTable = document.querySelector("#moagemTable");
-        if (moagemTable) new simpleDatatables.DataTable(moagemTable);
+        console.log("DOM carregado");
 
+        // Inicializa a tabela de moagem, se existir
+        const moagemTable = document.querySelector("#moagemTable");
+        if (moagemTable) {
+            console.log("Inicializando tabela moagemTable");
+            new simpleDatatables.DataTable(moagemTable);
+        } else {
+            console.log("moagemTable não encontrado");
+        }
+
+        // Inicializa a tabela de liquefação, se existir
         const liquefacaoTable = document.querySelector("#liquefacaoTable");
-        if (liquefacaoTable) new simpleDatatables.DataTable(liquefacaoTable);
+        if (liquefacaoTable) {
+            console.log("Inicializando tabela liquefacaoTable");
+            new simpleDatatables.DataTable(liquefacaoTable);
+        } else {
+            console.log("liquefacaoTable não encontrado");
+        }
+
+        console.log("Variável simulacoes:", simulacoes);
+
+        // Se existirem simulações, seleciona a primeira automaticamente e exibe os dados
+        if (simulacoes.length > 0) {
+            const select = document.getElementById('selecao-simulacao');
+            select.value = simulacoes[0].id;  // seleciona a primeira opção
+            console.log("Selecionando primeira simulação com id:", simulacoes[0].id);
+            exibirSimulacaoSelecionada(select);  // exibe gráfico e dados da simulação selecionada
+        } else {
+            console.log("Nenhuma simulação encontrada");
+        }
     });
+
+    const simulacoes = {{ simulacoes_json|safe }};
+
+    function exibirSimulacaoSelecionada(select) {
+    const id = select.value;
+    const simulacao = simulacoes.find(s => s.id == id);
+    if (!simulacao) return;
+
+    document.getElementById("data-simulacao").textContent = simulacao.data;
+    document.getElementById("milho").textContent = parseFloat(simulacao.milho).toFixed(4);
+    document.getElementById("milho-moido").textContent = parseFloat(simulacao.milho_moido).toFixed(4);
+    document.getElementById("energia").textContent = parseFloat(simulacao.energia).toFixed(2);
+
+    if (simulacao.liquefacao) {
+        const l = simulacao.liquefacao;
+        document.getElementById("amido").textContent = parseFloat(l.amido).toFixed(4);
+        document.getElementById("conversao-amido").textContent = parseFloat(l.conversao_amido).toFixed(2);
+        document.getElementById("tempo").textContent = parseFloat(l.tempo).toFixed(1);
+        document.getElementById("volume").textContent = parseFloat(l.volume).toFixed(3);
+        document.getElementById("conc-amido").textContent = parseFloat(l.conc_amido).toFixed(4);
+        document.getElementById("art").textContent = parseFloat(l.art).toFixed(4);
+        document.getElementById("percentual").textContent = parseFloat(l.percentual).toFixed(2);
+        document.getElementById("enzima").textContent = parseFloat(l.enzima).toFixed(4);
+        document.getElementById("dados-liquefacao").classList.remove("d-none");
+
+        // Gráfico
+        const trace = {
+            x: l.grafico.map(p => p.tempo),
+            y: l.grafico.map(p => parseFloat(p.conc).toFixed(4)),
+            type: 'scatter',
+            mode: 'lines+markers',
+            fill: 'tozeroy',
+            line: { color: 'orange' },
+            name: 'Amido (g/L)'
+        };
+        const layout = {
+            title: 'Cinética da Liquefação Enzimática',
+            xaxis: { title: 'Tempo (h)' },
+            yaxis: { title: 'Concentração de Amido (g/L)' },
+            height: 400
+        };
+        Plotly.newPlot('grafico-liquefacao', [trace], layout);
+    }
+
+        document.getElementById("card-simulacao").classList.remove("d-none");
+    }
+
+    // Auto-selecionar se uma simulação estiver carregada
+    window.addEventListener('DOMContentLoaded', () => {
+        const selectedSimId = "{{ simulacao_selecionada.id|default:'' }}";
+        if (selectedSimId) {
+            document.getElementById("selecao-simulacao").value = selectedSimId;
+            exibirSimulacaoSelecionada(document.getElementById("selecao-simulacao"));
+        }
+    });
+
+    
+
 </script>
+
 
 {% endblock %}
