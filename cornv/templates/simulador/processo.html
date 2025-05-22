@@ -20,16 +20,33 @@
 </script>
 
 <div class="container-fluid mt-4 p-3">
-    <div class="row justify-content-center mb-4">
-        <div class="col-lg-3 col-md-4 col-sm-12 mb-3">
-            {% for message in messages %}
-            {% if message %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-            {% endif %}
-            {% endfor %}
+    <div class="row justify-content-between align-items-center mb-4">
+        <!-- Título -->
+        <div class="col">
+            <h2 class="mb-0">Simulação de <span id="data-simulacao"> </span></h2>
+        </div>
 
+        <!-- Select no canto superior direito -->
+        <div class="col-auto">
+            <label for="selecao-simulacao" class="form-label"><strong>Selecionar simulação:</strong></label>
+            <select id="selecao-simulacao" class="form-select form-select-sm" onchange="exibirSimulacaoSelecionada(this)">
+                {% for simulacao in ultimas_simulacoes %}
+                    <option value="{{ simulacao.id }}">{{ simulacao.data }} - {{ simulacao.quantidade_milho }} kg</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Mensagens -->
+    {% for message in messages %}
+        {% if message %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endif %}
+    {% endfor %}
+
+    <div class="row">
+        <!-- Formulário de moagem -->
+        <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
             <div class="border bg-white p-3 h-100">
                 <h4>Moer milho</h4>
                 <hr>
@@ -41,38 +58,38 @@
             </div>
         </div>
 
-        <div class="mb-3">
-            <label for="selecao-simulacao" class="form-label"><strong>Selecionar simulação recente:</strong></label>
-            <select id="selecao-simulacao" class="form-select" onchange="exibirSimulacaoSelecionada(this)">
-                {% for simulacao in ultimas_simulacoes %}
-                    <option value="{{ simulacao.id }}">{{ simulacao.data }} - {{ simulacao.quantidade_milho }} kg</option>
-
-                        
-
-
-                {% endfor %}
-            </select>
+        <!-- Card de Moagem -->
+        <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+            <div id="card-simulacao" class="card bg-success text-white p-4 d-none h-100">
+                <h5 class="card-title">Moagem</h5>
+                <p><strong>Data:</strong> <span id="data-simulacao"></span></p>
+                <p><strong>Milho:</strong> <span id="milho"></span> kg</p>
+                <p><strong>Milho moído:</strong> <span id="milho-moido"></span> kg</p>
+                <p><strong>Energia total:</strong> <span id="energia"></span> kWh</p>
+            </div>
         </div>
 
-        <div id="card-simulacao" class="card bg-light border p-4 mb-4 d-none">
-    <h5 class="card-title">Dados da simulação de <span id="data-simulacao"></span></h5>
-    <p><strong>Milho:</strong> <span id="milho"></span> kg</p>
-    <p><strong>Milho moído:</strong> <span id="milho-moido"></span> kg</p>
-    <p><strong>Energia total:</strong> <span id="energia"></span> kWh</p>
-    <div id="dados-liquefacao" class="mt-3 d-none">
-        <h6>Liquefação</h6>
-        <p><strong>Amido convertido:</strong> <span id="amido"></span> kg</p>
-        <p><strong>Conversão do amido:</strong> <span id="conversao-amido"></span>%</p>
-        <p><strong>Tempo:</strong> <span id="tempo"></span> h</p>
-        <p><strong>Volume da reação:</strong> <span id="volume"></span> L</p>
-        <p><strong>Conc. amido final:</strong> <span id="conc-amido"></span> kg/L</p>
-        <p><strong>ART gerada:</strong> <span id="art"></span> kg</p>
-        <p><strong>Conversão percentual:</strong> <span id="percentual"></span>%</p>
-        <p><strong>Enzima:</strong> <span id="enzima"></span> g</p>
+        <!-- Card de Liquefação -->
+        <div class="col-lg-4 col-md-12 col-sm-12 mb-3">
+            <div id="dados-liquefacao" class="card bg-danger border p-4 d-none h-100">
+                <h5 class="card-title">Liquefação</h5>
+                <p><strong>Amido convertido:</strong> <span id="amido"></span> kg</p>
+                <p><strong>Conversão do amido:</strong> <span id="conversao-amido"></span>%</p>
+                <p><strong>Tempo:</strong> <span id="tempo"></span> h</p>
+                <p><strong>Volume da reação:</strong> <span id="volume"></span> L</p>
+                <p><strong>Conc. amido final:</strong> <span id="conc-amido"></span> kg/L</p>
+                <p><strong>ART gerada:</strong> <span id="art"></span> kg</p>
+                <p><strong>Conversão percentual:</strong> <span id="percentual"></span>%</p>
+                <p><strong>Enzima:</strong> <span id="enzima"></span> g</p>
+            </div>
+        </div>
     </div>
-</div>
 
-<div id="grafico-liquefacao" class="mb-4" style="width: 100%; height: 400px;"></div>
+    <!-- Gráfico -->
+    <div class="card bg-white border p-3 mt-3">
+        <h5 class="mb-3">Gráfico de Liquefação (ART x Tempo)</h5>
+        <div id="grafico-liquefacao" style="width: 100%; height: 400px;"></div>
+    </div>
 </div>
 
 
