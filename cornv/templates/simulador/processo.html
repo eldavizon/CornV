@@ -23,7 +23,7 @@
     <div class="row justify-content-between align-items-center mb-4">
         <!-- Título -->
         <div class="col">
-            <h2 class="mb-0">Simulação de <span id="data-simulacao"> </span></h2>
+            <h1 class="mb-0">Simulação de <span id="data-simulacao"> </span></h1>
         </div>
 
         <!-- Select no canto superior direito -->
@@ -48,7 +48,7 @@
         <!-- Formulário de moagem -->
         <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
             <div class="border bg-white p-3 h-100">
-                <h4>Moer milho</h4>
+                <h3>Moer milho</h3>
                 <hr>
                 <form method="POST" action="">
                     {% csrf_token %}
@@ -61,28 +61,27 @@
         <!-- Card de Moagem -->
         <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
             <div id="card-simulacao" class="card bg-success text-white p-4 d-none h-100">
-                <h5 class="card-title">Moagem</h5>
-                <p><strong>Data:</strong> <span id="data-simulacao"></span></p>
-                <p><strong>Milho:</strong> <span id="milho"></span> kg</p>
-                <p><strong>Milho moído:</strong> <span id="milho-moido"></span> kg</p>
-                <p><strong>Energia total:</strong> <span id="energia"></span> kWh</p>
+                <h4 class="card-title">Moagem</h4>
+                <h5><strong>Milho:</strong> <span id="milho"></span> kg</h5>
+                <h5><strong>Milho moído:</strong> <span id="milho-moido"></span> kg</h5>
+                <h5><strong>Energia total:</strong> <span id="energia"></span> kWh</h5>
             </div>
         </div>
 
         <!-- Card de Liquefação -->
         <div class="col-lg-4 col-md-12 col-sm-12 mb-3">
-            <div id="dados-liquefacao" class="card bg-danger border p-4 d-none h-100">
-                <h5 class="card-title">Liquefação</h5>
-                <p><strong>Amido convertido:</strong> <span id="amido"></span> kg</p>
-                <p><strong>Conversão do amido:</strong> <span id="conversao-amido"></span>%</p>
-                <p><strong>Tempo:</strong> <span id="tempo"></span> h</p>
-                <p><strong>Volume da reação:</strong> <span id="volume"></span> L</p>
-                <p><strong>Conc. amido final:</strong> <span id="conc-amido"></span> kg/L</p>
-                <p><strong>ART gerada:</strong> <span id="art"></span> kg</p>
-                <p><strong>Conversão percentual:</strong> <span id="percentual"></span>%</p>
-                <p><strong>Enzima:</strong> <span id="enzima"></span> g</p>
-            </div>
+            <div id="dados-liquefacao" class="card border-0 text-white p-4 d-none h-100" style="background-color: #6d1a1a;">
+            <h4 class="card-title">Liquefação</h4>
+            <h5><strong>Amido convertido:</strong> <span id="amido"></span> kg</h5>
+            <h5><strong>Conversão do amido:</strong> <span id="conversao-amido"></span>%</h5>
+            <h5><strong>Tempo:</strong> <span id="tempo"></span> h</h5>
+            <h5><strong>Volume da reação:</strong> <span id="volume"></span> L</h5>
+            <h5><strong>Conc. amido final:</strong> <span id="conc-amido"></span> kg/L</h5>
+            <h5><strong>ART gerada:</strong> <span id="art"></span> kg</h5>
+            <h5><strong>Conversão percentual:</strong> <span id="percentual"></span>%</h5>
+            <h5><strong>Enzima:</strong> <span id="enzima"></span> g</h5>
         </div>
+        
     </div>
 
     <!-- Gráfico -->
@@ -136,45 +135,45 @@
     const simulacoes = {{ simulacoes_json|safe }};
 
     function exibirSimulacaoSelecionada(select) {
-        const id = select.value;
-        const simulacao = simulacoes.find(s => s.id == id);
-        if (!simulacao) return;
+    const id = select.value;
+    const simulacao = simulacoes.find(s => s.id == id);
+    if (!simulacao) return;
 
-        document.getElementById("data-simulacao").textContent = simulacao.data;
-        document.getElementById("milho").textContent = simulacao.milho;
-        document.getElementById("milho-moido").textContent = simulacao.milho_moido;
-        document.getElementById("energia").textContent = simulacao.energia;
+    document.getElementById("data-simulacao").textContent = simulacao.data;
+    document.getElementById("milho").textContent = parseFloat(simulacao.milho).toFixed(4);
+    document.getElementById("milho-moido").textContent = parseFloat(simulacao.milho_moido).toFixed(4);
+    document.getElementById("energia").textContent = parseFloat(simulacao.energia).toFixed(2);
 
-        if (simulacao.liquefacao) {
-            const l = simulacao.liquefacao;
-            document.getElementById("amido").textContent = l.amido;
-            document.getElementById("conversao-amido").textContent = l.conversao_amido;
-            document.getElementById("tempo").textContent = l.tempo;
-            document.getElementById("volume").textContent = l.volume;
-            document.getElementById("conc-amido").textContent = l.conc_amido;
-            document.getElementById("art").textContent = l.art;
-            document.getElementById("percentual").textContent = l.percentual;
-            document.getElementById("enzima").textContent = l.enzima;
-            document.getElementById("dados-liquefacao").classList.remove("d-none");
+    if (simulacao.liquefacao) {
+        const l = simulacao.liquefacao;
+        document.getElementById("amido").textContent = parseFloat(l.amido).toFixed(4);
+        document.getElementById("conversao-amido").textContent = parseFloat(l.conversao_amido).toFixed(2);
+        document.getElementById("tempo").textContent = parseFloat(l.tempo).toFixed(1);
+        document.getElementById("volume").textContent = parseFloat(l.volume).toFixed(3);
+        document.getElementById("conc-amido").textContent = parseFloat(l.conc_amido).toFixed(4);
+        document.getElementById("art").textContent = parseFloat(l.art).toFixed(4);
+        document.getElementById("percentual").textContent = parseFloat(l.percentual).toFixed(2);
+        document.getElementById("enzima").textContent = parseFloat(l.enzima).toFixed(4);
+        document.getElementById("dados-liquefacao").classList.remove("d-none");
 
-            // Renderiza o gráfico com Plotly
-            const trace = {
-                x: l.grafico.map(p => p.tempo),
-                y: l.grafico.map(p => p.conc),
-                type: 'scatter',
-                mode: 'lines+markers',
-                fill: 'tozeroy',
-                line: { color: 'orange' },
-                name: 'Amido (g/L)'
-            };
-            const layout = {
-                title: 'Cinética da Liquefação Enzimática',
-                xaxis: { title: 'Tempo (h)' },
-                yaxis: { title: 'Concentração de Amido (g/L)' },
-                height: 400
-            };
-            Plotly.newPlot('grafico-liquefacao', [trace], layout);
-        }
+        // Gráfico
+        const trace = {
+            x: l.grafico.map(p => p.tempo),
+            y: l.grafico.map(p => parseFloat(p.conc).toFixed(4)),
+            type: 'scatter',
+            mode: 'lines+markers',
+            fill: 'tozeroy',
+            line: { color: 'orange' },
+            name: 'Amido (g/L)'
+        };
+        const layout = {
+            title: 'Cinética da Liquefação Enzimática',
+            xaxis: { title: 'Tempo (h)' },
+            yaxis: { title: 'Concentração de Amido (g/L)' },
+            height: 400
+        };
+        Plotly.newPlot('grafico-liquefacao', [trace], layout);
+    }
 
         document.getElementById("card-simulacao").classList.remove("d-none");
     }
