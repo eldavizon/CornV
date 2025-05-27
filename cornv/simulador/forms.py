@@ -20,9 +20,11 @@ class ProcessoMoagemForm(forms.ModelForm):
     )
     enzima_g = forms.FloatField(required=False, label="Quantidade de enzima (g)")
     tempo_h = forms.FloatField(required=False, label="Tempo de reação (h)")
+    concentracao_desejada_g_L = forms.FloatField(required=False, label="Concentração desejada (g/L)")
+
 
     class Meta:
         model = ProcessoMoagem
-        fields = ['quantidade_milho', 'modo', 'enzima_g', 'tempo_h']
+        fields = ['quantidade_milho', 'modo', 'enzima_g', 'tempo_h', 'concentracao_desejada_g_L']
 
         

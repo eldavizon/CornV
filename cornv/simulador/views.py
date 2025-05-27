@@ -59,6 +59,9 @@ def processo(request):
                 "art": p.liquefacao.art_gerada,
                 "percentual": p.liquefacao.conversao_amido,
                 "enzima": p.liquefacao.enzima_usada,
+                "volume_total_L": p.liquefacao.volume_total_L,
+                "volume_milho_L": p.liquefacao.volume_milho_L,
+                "volume_agua_adicionado_L": p.liquefacao.volume_agua_adicionado_L,
                 "grafico": [
                     {
                         "tempo": d.tempo_h,
@@ -129,13 +132,16 @@ def processo(request):
             modo = form.cleaned_data.get("modo")
             enzima_g = form.cleaned_data.get("enzima_g")
             tempo_h = form.cleaned_data.get("tempo_h")
+            concentracao_desejada = form.cleaned_data.get("concentracao_desejada_g_L")
+
 
             # Chama a função de simulação da liquefação
             resultado_liquefacao = simular_liquefacao(
                 massa_milho_kg=form_instance.milho_moido,
                 enzima_g=enzima_g,
                 tempo_h=tempo_h,
-                modo=modo
+                modo=modo,
+                concentracao_desejada_g_L=concentracao_desejada
             )
 
             # Se houve erro na simulação, exibe mensagem e redireciona
@@ -157,7 +163,11 @@ def processo(request):
                 conc_amido_final=resultado_liquefacao["concentracao_amido_final"] / 1000,
                 art_gerada=resultado_liquefacao["massa_glicose_g"] / 1000,
                 enzima_usada=enzima_g if enzima_g else resultado_liquefacao["enzima_g"],
+                volume_total_L=resultado_liquefacao["volume_total_L"],
+                volume_milho_L=resultado_liquefacao["volume_milho_L"],
+                volume_agua_adicionado_L=resultado_liquefacao["volume_agua_adicionado_L"],
             )
+
 
             # Cria a curva de dados ponto a ponto no banco
             for tempo, concentracao in zip(resultado_liquefacao["dados_t"], resultado_liquefacao["dados_S"]):

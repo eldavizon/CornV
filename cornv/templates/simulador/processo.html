@@ -80,6 +80,10 @@
             <h5><strong>ART gerada:</strong> <span id="art"></span> kg</h5>
             <h5><strong>Conversão percentual:</strong> <span id="percentual"></span>%</h5>
             <h5><strong>Enzima:</strong> <span id="enzima"></span> g</h5>
+            <h5><strong>Volume total:</strong> <span id="volume-total"></span> L</h5>
+            <h5><strong>Volume milho (puro):</strong> <span id="volume-milho"></span> L</h5>
+            <h5><strong>Água adicionada:</strong> <span id="agua-adicionada"></span> L</h5>
+
         </div>
         
     </div>
@@ -149,6 +153,11 @@
             document.getElementById("art").textContent = parseFloat(l.art).toFixed(4);
             document.getElementById("percentual").textContent = parseFloat(l.percentual).toFixed(2);
             document.getElementById("enzima").textContent = parseFloat(l.enzima).toFixed(4);
+            
+            document.getElementById("volume-total").textContent = parseFloat(l.volume_total_L).toFixed(3);
+            document.getElementById("volume-milho").textContent = parseFloat(l.volume_milho_L).toFixed(3);
+            document.getElementById("agua-adicionada").textContent = parseFloat(l.volume_agua_adicionado_L).toFixed(3);
+
 
             // Exibe o bloco com os dados de liquefação
             document.getElementById("dados-liquefacao").classList.remove("d-none");

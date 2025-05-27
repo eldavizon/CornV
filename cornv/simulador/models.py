@@ -27,6 +27,9 @@ class ProcessoLiquefacao(models.Model):
     conc_amido_final = models.FloatField(null=True, help_text="Concentração final de amido (kg/L)")
     art_gerada = models.FloatField(null=True, help_text="Glicose fermentescível (ART) gerada (kg)")
     enzima_usada = models.FloatField(null=True, blank=True, help_text="Enzima utilizada ou necessária (g)")
+    volume_total_L = models.FloatField(null=True, help_text="Volume total do processo (L)")
+    volume_milho_L = models.FloatField(null=True, help_text="Volume estimado do milho puro (L)")
+    volume_agua_adicionado_L = models.FloatField(null=True, help_text="Volume de água adicionado (L)")
 
     data = models.DateTimeField(auto_now_add=True)
 
