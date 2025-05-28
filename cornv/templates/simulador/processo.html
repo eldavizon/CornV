@@ -1,0 +1,286 @@
+{% extends 'partials/base.html' %}
+{% block title %}Processo de moagem{% endblock %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block content %} 
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const moagemTable = document.querySelector("#moagemTable");
+        if (moagemTable) {
+            new simpleDatatables.DataTable(moagemTable);
+        }
+
+        const liquefacaoTable = document.querySelector("#liquefacaoTable");
+        if (liquefacaoTable) {
+            new simpleDatatables.DataTable(liquefacaoTable);
+        }
+    });
+</script>
+
+<div class="container-fluid mt-4 p-3">
+    <!-- Cabeçalho -->
+    <div class="row justify-content-between align-items-center mb-4">
+        <div class="col">
+            <h1 class="mb-0">Simulação de <span id="data-simulacao"> </span></h1>
+        </div>
+        <div class="col-auto">
+            <label for="selecao-simulacao" class="form-label"><strong>Selecionar simulação:</strong></label>
+            <select id="selecao-simulacao" class="form-select form-select-sm" onchange="exibirSimulacaoSelecionada(this)">
+                {% for simulacao in ultimas_simulacoes %}
+                    <option value="{{ simulacao.id }}">{{ simulacao.data }} - {{ simulacao.quantidade_milho }} kg</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Mensagens -->
+    {% for message in messages %}
+        {% if message %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endif %}
+    {% endfor %}
+
+    <!-- Linha de conteúdo -->
+    <div class="row">
+        <!-- Formulário mais largo -->
+        <div class="col-12 mb-4">
+            <div class="border bg-white p-3 w-100">
+                <h3>Moer milho</h3>
+                <hr>
+                <form method="POST" action="" class="d-flex flex-wrap align-items-end gap-3">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <input class="btn btn-success" type="submit" value="Converter">
+                </form>
+            </div>
+        </div>
+
+        <!-- Cards em linhaa -->
+        <div class="d-flex flex-wrap gap-3 justify-content-start">
+
+            <!-- Moagem -->
+            <div class="p-3 bg-success text-white d-none" id="card-simulacao"
+                style="border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); min-width: 280px;">
+                <h4>Moagem</h4>
+                <h5><strong>Milho:</strong> <span id="milho"></span> kg</h5>
+                <h5><strong>Milho moído:</strong> <span id="milho-moido"></span> kg</h5>
+                <h5><strong>Energia total:</strong> <span id="energia"></span> kWh</h5>
+            </div>
+
+            <!-- Liquefação -->
+            <div class="p-3 text-white d-none" id="dados-liquefacao"
+                style="border-radius: 16px; background-color: #6d1a1a; box-shadow: 0 4px 12px rgba(0,0,0,0.08); min-width: 280px;">
+                <h4>Liquefação</h4>
+                <h5><strong>Amido convertido:</strong> <span id="amido"></span> kg</h5>
+                <h5><strong>Conversão do amido:</strong> <span id="conversao-amido"></span>%</h5>
+                <h5><strong>Tempo:</strong> <span id="tempo"></span> h</h5>
+                <h5><strong>Volume da reação:</strong> <span id="volume"></span> L</h5>
+                <h5><strong>Conc. amido final:</strong> <span id="conc-amido"></span> kg/L</h5>
+                <h5><strong>ART gerada:</strong> <span id="art"></span> kg</h5>
+                <h5><strong>Conversão percentual:</strong> <span id="percentual"></span>%</h5>
+                <h5><strong>Enzima:</strong> <span id="enzima"></span> g</h5>
+                <h5><strong>Volume total:</strong> <span id="volume-total"></span> L</h5>
+                <h5><strong>Volume milho (puro):</strong> <span id="volume-milho"></span> L</h5>
+                <h5><strong>Água adicionada:</strong> <span id="agua-adicionada"></span> L</h5>
+            </div>
+
+            <!-- Sacarificação -->
+            <div class="p-3 bg-warning text-dark"
+                style="border-radius: 16px; min-width: 280px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <h4>Sacarificação</h4>
+                <h5><strong>Polissacarídeos:</strong> 0 kg</h5>
+                <h5><strong>Monossacarídeos:</strong> 0 kg</h5>
+                <h5><strong>Tempo:</strong> 0 h</h5>
+                <h5><strong>Enzima utilizada:</strong> 0 g</h5>
+            </div>
+
+            <!-- Fermentação -->
+            <div class="p-3 bg-primary text-white"
+                style="border-radius: 16px; min-width: 280px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <h4>Fermentação</h4>
+                <h5><strong>Açúcar inicial:</strong> 0 kg</h5>
+                <h5><strong>Álcool produzido:</strong> 0 L</h5>
+                <h5><strong>Tempo:</strong> 0 h</h5>
+                <h5><strong>Eficiência:</strong> 0%</h5>
+                <h5><strong>Levedura:</strong> 0 g</h5>
+            </div>
+
+            <!-- Destilação -->
+            <div class="p-3 bg-dark text-white"
+                style="border-radius: 16px; min-width: 280px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <h4>Destilação</h4>
+                <h5><strong>Volume bruto:</strong> 0 L</h5>
+                <h5><strong>Álcool recuperado:</strong> 0 L</h5>
+                <h5><strong>Energia consumida:</strong> 0 kWh</h5>
+                <h5><strong>Perdas:</strong> 0%</h5>
+            </div>
+
+            <!-- Produtos finais -->
+            <div class="p-3 bg-info text-dark"
+                style="border-radius: 16px; min-width: 280px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <h4>Produtos Finais</h4>
+                <h5><strong>Etanol final:</strong> 0 L</h5>
+                <h5><strong>DDG gerado:</strong> 0 kg</h5>
+                <h5><strong>CO₂ emitido:</strong> 0 kg</h5>
+                <h5><strong>Valor de mercado:</strong> R$ 0</h5>
+            </div>
+
+        </div>
+
+        <!-- Gráfico -->
+        <div class="card p-4 mt-4"
+            style="border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); background-color: #fff; border: 1px solid #dee2e6;">
+            <h5 style="font-size: 1rem;" class="mb-3">Gráfico de Liquefação (Amido vs Tempo)</h5>
+            <div id="grafico-liquefacao" style="width: 100%; height: 400px;"></div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
+<script src="{% static '/js/plotly-3.0.1.min.js' %}" charset="utf-8"></script>
+
+<script>
+    // Aguarda o carregamento completo do DOM (estrutura HTML)
+    document.addEventListener("DOMContentLoaded", function () {
+        console.log("DOM carregado");
+
+        console.log("Variável simulacoes:", simulacoes);
+
+        // Se houver pelo menos uma simulação disponível
+        if (simulacoes.length > 0) {
+            // Pega o <select> do HTML onde o usuário escolhe a simulação
+            const select = document.getElementById('selecao-simulacao');
+
+            // Define o valor selecionado como o ID da primeira simulação
+            select.value = simulacoes[0].id;
+
+            console.log("Selecionando primeira simulação com id:", simulacoes[0].id);
+
+            // Chama a função que atualiza a tela com os dados da simulação selecionada
+            exibirSimulacaoSelecionada(select);
+        } else {
+            console.log("Nenhuma simulação encontrada");
+        }
+    });
+
+    // Essa variável é injetada pelo Django como JSON (vindo do back-end para o front-end)
+    const simulacoes = {{ simulacoes_json|safe }};
+
+    // Função que mostra os dados de uma simulação na tela
+    function exibirSimulacaoSelecionada(select) {
+        const id = select.value;  // Pega o ID da simulação selecionada
+        const simulacao = simulacoes.find(s => s.id == id);  // Busca no array de simulações
+
+        if (!simulacao) return;  // Se não encontrar, sai da função
+
+        // Atualiza os campos do HTML com os dados da simulação
+        document.getElementById("data-simulacao").textContent = simulacao.data;
+        document.getElementById("milho").textContent = parseFloat(simulacao.milho).toFixed(4);
+        document.getElementById("milho-moido").textContent = parseFloat(simulacao.milho_moido).toFixed(4);
+        document.getElementById("energia").textContent = parseFloat(simulacao.energia).toFixed(2);
+
+        // Se a simulação tiver dados de liquefação
+        if (simulacao.liquefacao) {
+            const l = simulacao.liquefacao;
+
+            // Preenche os campos com os dados da liquefação
+            document.getElementById("amido").textContent = parseFloat(l.amido).toFixed(4);
+            document.getElementById("conversao-amido").textContent = parseFloat(l.conversao_amido).toFixed(2);
+            document.getElementById("tempo").textContent = parseFloat(l.tempo).toFixed(1);
+            document.getElementById("volume").textContent = parseFloat(l.volume).toFixed(3);
+            document.getElementById("conc-amido").textContent = parseFloat(l.conc_amido).toFixed(4);
+            document.getElementById("art").textContent = parseFloat(l.art).toFixed(4);
+            document.getElementById("percentual").textContent = parseFloat(l.percentual).toFixed(2);
+            document.getElementById("enzima").textContent = parseFloat(l.enzima).toFixed(4);
+            
+            document.getElementById("volume-total").textContent = parseFloat(l.volume_total_L).toFixed(3);
+            document.getElementById("volume-milho").textContent = parseFloat(l.volume_milho_L).toFixed(3);
+            document.getElementById("agua-adicionada").textContent = parseFloat(l.volume_agua_adicionado_L).toFixed(3);
+
+
+            // Exibe o bloco com os dados de liquefação
+            document.getElementById("dados-liquefacao").classList.remove("d-none");
+
+            // Cria um gráfico com a curva de concentração de amido ao longo do tempo
+            const trace = {
+                x: l.grafico.map(p => p.tempo),  // Eixo X: tempo
+                y: l.grafico.map(p => parseFloat(p.conc).toFixed(4)),  // Eixo Y: concentração
+                type: 'scatter',
+                mode: 'lines+markers',
+                fill: 'tozeroy',  // Preenche abaixo da curva
+                line: { color: 'orange' },
+                name: 'Amido (g/L)'
+            };
+
+            const layout = {
+            title: {
+                text: 'Cinética da Liquefação Enzimática',
+                font: {
+                    size: 18,
+                    family: 'Arial, sans-serif',
+                    color: '#333'
+                },
+                x: 0.05,
+                xanchor: 'left'
+            },
+            xaxis: {
+                title: {
+                    text: 'Tempo (h)',
+                    font: { size: 14, color: '#333' }
+                },
+                showline: true,
+                linewidth: 2,
+                linecolor: '#ccc',
+                mirror: true,
+                zeroline: false
+            },
+            yaxis: {
+                title: {
+                    text: 'Concentração de Amido (g/L)',
+                    font: { size: 14, color: '#333' }
+                },
+                showline: true,
+                linewidth: 2,
+                linecolor: '#ccc',
+                mirror: true,
+                zeroline: false
+            },
+            margin: { t: 60, l: 60, r: 30, b: 60 },
+            height: 400,
+            plot_bgcolor: '#f9f9f9',
+            paper_bgcolor: '#fff'
+        };
+
+
+            // Renderiza o gráfico no elemento com id 'grafico-liquefacao'
+            Plotly.newPlot('grafico-liquefacao', [trace], layout);
+        }
+
+        // Exibe o card de simulação na interface
+        document.getElementById("card-simulacao").classList.remove("d-none");
+    }
+
+    // Evento adicional para lidar com simulações pré-selecionadas vindas do backend
+    window.addEventListener('DOMContentLoaded', () => {
+        const selectedSimId = "{{ simulacao_selecionada.id|default:'' }}";
+
+        // Se houver uma simulação já selecionada no backend (via contexto Django)
+        if (selectedSimId) {
+            // Marca essa simulação no select
+            document.getElementById("selecao-simulacao").value = selectedSimId;
+
+            // Exibe os dados dessa simulação
+            exibirSimulacaoSelecionada(document.getElementById("selecao-simulacao"));
+        }
+    });
+</script>
+
+
+
+{% endblock %}
