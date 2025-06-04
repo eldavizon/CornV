@@ -3,69 +3,116 @@
 {% load crispy_forms_tags %}
 
 {% block content %} 
-<div class="container mt-4">
+
+
+<div class="container mt-4" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
     <div class="row">
         <!-- Formulário -->
         <div class="col-lg-4 mb-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0"><i class="fas fa-exchange-alt me-2"></i>Conversor Teórico Milho-ART</h4>
+            <div class="card shadow-sm" style="border: none; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div class="card-header" style="background: linear-gradient(135deg, #28a745 0%, #218838 100%); color: white; border: none; padding: 1.25rem;">
+                    <h4 class="mb-0" style="font-weight: 600; font-size: 1.25rem;">
+                        <i class="fas fa-exchange-alt me-2"></i>Conversor Teórico Milho-ART
+                    </h4>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="padding: 1.5rem;">
                     {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" 
+                         style="border-radius: 8px; border-left: 4px solid {% if message.tags == 'success' %}#28a745{% elif message.tags == 'warning' %}#ffc107{% else %}#dc3545{% endif %};"
+                         role="alert">
                         {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.75rem;"></button>
                     </div>
                     {% endfor %}
                     
-                    <p class="text-muted">Preencha os dados para converter quilogramas de milho em ART</p>
+                    <p class="text-muted" style="margin-bottom: 1.5rem; font-size: 0.9rem; color: #6c757d;">
+                        Preencha os dados para converter quilogramas de milho em ART
+                    </p>
                     <form method="POST" action="" class="needs-validation" novalidate>
                         {% csrf_token %}
                         <div class="mb-3">
                             {{ form|crispy }}
                         </div>
                         
-                        <button class="btn btn-success w-100 py-2" type="submit">
+                        <button class="btn w-100 py-2" type="submit"
+                                style="background: linear-gradient(135deg, #28a745 0%, #218838 100%); 
+                                       border: none; 
+                                       border-radius: 8px;
+                                       font-weight: 500;
+                                       letter-spacing: 0.5px;
+                                       transition: all 0.3s ease;">
                             <i class="fas fa-calculator me-2"></i>Calcular Conversão
                         </button>
                     </form>
                 </div>
-                <div class="card-footer bg-light">
-                    <small class="text-muted">* Todos os campos são obrigatórios</small>
+                <div class="card-footer" style="background-color: #f8f9fa; border-top: 1px solid #e9ecef; padding: 0.75rem 1.5rem;">
+                    <small class="text-muted" style="font-size: 0.75rem;">* Todos os campos são obrigatórios</small>
                 </div>
             </div>
         </div>
 
         <!-- Tabela de registros automáticos -->
         <div class="col-lg-8">
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-history me-2"></i>Conversão Teórica das Últimas Simulações</h4>
+            <div class="card shadow-sm mb-4" style="border: none; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div class="card-header" style="background: linear-gradient(135deg, #007bff 0%, #0069d9 100%); color: white; border: none; padding: 1.25rem;">
+                    <h4 class="mb-0" style="font-weight: 600; font-size: 1.25rem;">
+                        <i class="fas fa-history me-2"></i>Conversão Teórica das Últimas Simulações
+                    </h4>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body" style="padding: 0;">
                     <div class="table-responsive">
-                        <table id="datatablesSimple" class="table table-hover mb-0">
-                            <thead class="table-light">
+                        <table id="datatablesSimple" class="table mb-0" style="margin-bottom: 0; width:100%;">
+                            <thead style="background-color: #f8f9fa;">
                                 <tr>
-                                    <th><i class="far fa-calendar-alt me-1"></i> Data</th>
-                                    <th><i class="fas fa-weight me-1"></i> Milho (Kg)</th>
-                                    <th><i class="fas fa-weight me-1"></i> ART (Kg)</th>
-                                    <th><i class="fas fa-wine-bottle me-1"></i> Etanol (L)</th>
-                                    <th><i class="fas fa-percentage me-1"></i> L/Kg</th>
-                                    <th><i class="fas fa-chart-line me-1"></i> Rendimento</th>
+                                    <th style="padding: 1rem; font-weight: 600; color: #495057; border-top: none; border-bottom: 2px solid #e9ecef;">
+                                        <i class="far fa-calendar-alt me-1"></i> Data
+                                    </th>
+                                    <th style="padding: 1rem; font-weight: 600; color: #495057; border-top: none; border-bottom: 2px solid #e9ecef;">
+                                        <i class="fas fa-weight me-1"></i> Milho (Kg)
+                                    </th>
+                                    <th style="padding: 1rem; font-weight: 600; color: #495057; border-top: none; border-bottom: 2px solid #e9ecef;">
+                                        <i class="fas fa-weight me-1"></i> ART (Kg)
+                                    </th>
+                                    <th style="padding: 1rem; font-weight: 600; color: #495057; border-top: none; border-bottom: 2px solid #e9ecef;">
+                                        <i class="fas fa-wine-bottle me-1"></i> Etanol (L)
+                                    </th>
+                                    <th style="padding: 1rem; font-weight: 600; color: #495057; border-top: none; border-bottom: 2px solid #e9ecef;">
+                                        <i class="fas fa-percentage me-1"></i> L/Kg
+                                    </th>
+                                    <th style="padding: 1rem; font-weight: 600; color: #495057; border-top: none; border-bottom: 2px solid #e9ecef;">
+                                        <i class="fas fa-chart-line me-1"></i> Rendimento
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for item in items %}
-                                <tr>
-                                    <td>{{ item.data|date:"d/m/Y H:i" }}</td>
-                                    <td>{{ item.quantidade_milho }}</td>
-                                    <td class="fw-bold text-success">{{ item.quantidade_art }}</td>
-                                    <td>{{ item.volume_etanol }}</td>
-                                    <td>{{ item.proporcao_producao }}</td>
-                                    <td>
-                                        <span class="badge bg-{% if item.rendimento_percentual >= 90 %}success{% elif item.rendimento_percentual >= 70 %}warning{% else %}danger{% endif %}">
+                                <tr style="transition: all 0.2s ease;">
+                                    <td style="padding: 1rem; border-top: 1px solid #e9ecef; vertical-align: middle;">
+                                        {{ item.data|date:"d/m/Y H:i" }}
+                                    </td>
+                                    <td style="padding: 1rem; border-top: 1px solid #e9ecef; vertical-align: middle;">
+                                        {{ item.quantidade_milho }}
+                                    </td>
+                                    <td style="padding: 1rem; border-top: 1px solid #e9ecef; vertical-align: middle; font-weight: 600; color: #28a745;">
+                                        {{ item.quantidade_art }}
+                                    </td>
+                                    <td style="padding: 1rem; border-top: 1px solid #e9ecef; vertical-align: middle;">
+                                        {{ item.volume_etanol }}
+                                    </td>
+                                    <td style="padding: 1rem; border-top: 1px solid #e9ecef; vertical-align: middle;">
+                                        {{ item.proporcao_producao }}
+                                    </td>
+                                    <td style="padding: 1rem; border-top: 1px solid #e9ecef; vertical-align: middle;">
+                                        <span style="display: inline-block; 
+                                                  padding: 0.35em 0.65em; 
+                                                  font-size: 0.85em; 
+                                                  font-weight: 600; 
+                                                  line-height: 1; 
+                                                  text-align: center; 
+                                                  white-space: nowrap; 
+                                                  vertical-align: baseline; 
+                                                  border-radius: 0.375rem;
+                                                  background-color: {% if item.rendimento_percentual >= 90 %}#28a745{% elif item.rendimento_percentual >= 70 %}#ffc107; color: #212529{% else %}#dc3545{% endif %};">
                                             {{ item.rendimento_percentual }}%
                                         </span>
                                     </td>
@@ -76,80 +123,136 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Tabela do resultado manual -->
-            {% if resultado_manual %}
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-info text-white">
-                    <h4 class="mb-0"><i class="fas fa-search me-2"></i>Resultado da Simulação Atual</h4>
+    <!-- Tabela com todos os registros de CalculoART - Agora em container-fluid -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm" style="border: none; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div class="card-header" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; border: none; padding: 1.25rem;">
+                    <h4 class="mb-0" style="font-weight: 600; font-size: 1.25rem;">
+                        <i class="fas fa-database me-2"></i>Histórico Completo de Simulações
+                    </h4>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body" style="padding: 0;">
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-info">
+                        <table id="datatablesCompleto" class="table mb-0" style="margin-bottom: 0; width:100%;">
+                            <thead style="background-color: #e2f3f7;">
                                 <tr>
-                                    <th>Data</th>
-                                    <th>Milho (Kg)</th>
-                                    <th>ART (Kg)</th>
-                                    <th>Etanol (L)</th>
-                                    <th>L/Kg</th>
-                                    <th>Rendimento</th>
+                                    <th style="padding: 1rem; font-weight: 600; color: #495057; border-top: none; border-bottom: 2px solid #d1e7eb;">
+                                        <i class="far fa-calendar-alt me-1"></i> Data
+                                    </th>
+                                    <th style="padding: 1rem; font-weight: 600; color: #495057; border-top: none; border-bottom: 2px solid #d1e7eb;">
+                                        <i class="fas fa-weight me-1"></i> Milho (Kg)
+                                    </th>
+                                    <th style="padding: 1rem; font-weight: 600; color: #495057; border-top: none; border-bottom: 2px solid #d1e7eb;">
+                                        <i class="fas fa-weight me-1"></i> ART (Kg)
+                                    </th>
+                                    <th style="padding: 1rem; font-weight: 600; color: #495057; border-top: none; border-bottom: 2px solid #d1e7eb;">
+                                        <i class="fas fa-wine-bottle me-1"></i> Etanol (L)
+                                    </th>
+                                    <th style="padding: 1rem; font-weight: 600; color: #495057; border-top: none; border-bottom: 2px solid #d1e7eb;">
+                                        <i class="fas fa-percentage me-1"></i> L/Kg
+                                    </th>
+                                    <th style="padding: 1rem; font-weight: 600; color: #495057; border-top: none; border-bottom: 2px solid #d1e7eb;">
+                                        <i class="fas fa-chart-line me-1"></i> Rendimento
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr class="table-active">
-                                    <td>{{ resultado_manual.data|date:"d/m/Y H:i" }}</td>
-                                    <td>{{ resultado_manual.quantidade_milho }}</td>
-                                    <td class="fw-bold text-primary">{{ resultado_manual.quantidade_art }}</td>
-                                    <td>{{ resultado_manual.volume_etanol }}</td>
-                                    <td>{{ resultado_manual.proporcao_producao }}</td>
-                                    <td>
-                                        <span class="badge bg-{% if resultado_manual.rendimento_percentual >= 90 %}success{% elif resultado_manual.rendimento_percentual >= 70 %}warning{% else %}danger{% endif %}">
-                                            {{ resultado_manual.rendimento_percentual }}%
+                                {% for item in todos_calculos %}
+                                <tr style="transition: all 0.2s ease;">
+                                    <td style="padding: 1rem; border-top: 1px solid #e9ecef; vertical-align: middle;">
+                                        {{ item.data|date:"d/m/Y H:i" }}
+                                    </td>
+                                    <td style="padding: 1rem; border-top: 1px solid #e9ecef; vertical-align: middle;">
+                                        {{ item.quantidade_milho }}
+                                    </td>
+                                    <td style="padding: 1rem; border-top: 1px solid #e9ecef; vertical-align: middle; font-weight: 600; color: #007bff;">
+                                        {{ item.quantidade_art }}
+                                    </td>
+                                    <td style="padding: 1rem; border-top: 1px solid #e9ecef; vertical-align: middle;">
+                                        {{ item.volume_etanol }}
+                                    </td>
+                                    <td style="padding: 1rem; border-top: 1px solid #e9ecef; vertical-align: middle;">
+                                        {{ item.proporcao_producao }}
+                                    </td>
+                                    <td style="padding: 1rem; border-top: 1px solid #e9ecef; vertical-align: middle;">
+                                        <span style="display: inline-block; 
+                                                  padding: 0.35em 0.65em; 
+                                                  font-size: 0.85em; 
+                                                  font-weight: 600; 
+                                                  line-height: 1; 
+                                                  text-align: center; 
+                                                  white-space: nowrap; 
+                                                  vertical-align: baseline; 
+                                                  border-radius: 0.375rem;
+                                                  background-color: {% if item.rendimento_percentual >= 90 %}#28a745{% elif item.rendimento_percentual >= 70 %}#ffc107; color: #212529{% else %}#dc3545{% endif %};">
+                                            {{ item.rendimento_percentual }}%
                                         </span>
                                     </td>
                                 </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 </div>
-                <div class="card-footer bg-light">
-                    <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
-                        <i class="fas fa-print me-1"></i>Imprimir Resultado
-                    </button>
-                </div>
             </div>
-            {% endif %}
         </div>
     </div>
 </div>
-
 <!-- Adicione esses links no cabeçalho do seu template -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-<style>
-    body {
-        background-color: #f8f9fa;
-    }
-    .card {
-        border-radius: 10px;
-        overflow: hidden;
-    }
-    .card-header {
-        border-radius: 0 !important;
-    }
-    .table th {
-        white-space: nowrap;
-    }
-    .form-control:focus {
-        border-color: #28a745;
-        box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
-    }
-    .badge {
-        font-size: 0.85em;
-        padding: 0.35em 0.65em;
-    }
-</style>
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Configuração da primeira tabela
+        $('#datatablesSimple').DataTable({
+            "pageLength": 5,  // Mostra 5 registros por padrão
+            "lengthMenu": [5, 10, 25, 50],  // Opções de quantidade de registros por página
+            "language": {
+                "lengthMenu": "Mostrar _MENU_ registros por página",
+                "zeroRecords": "Nenhum registro encontrado",
+                "info": "Mostrando página _PAGE_ de _PAGES_",
+                "infoEmpty": "Nenhum registro disponível",
+                "infoFiltered": "(filtrado de _MAX_ registros totais)",
+                "search": "Pesquisar:",
+                "paginate": {
+                    "first": "Primeiro",
+                    "last": "Último",
+                    "next": "Próximo",
+                    "previous": "Anterior"
+                }
+            }
+        });
+        
+        // Configuração da segunda tabela (histórico completo)
+        $('#datatablesCompleto').DataTable({
+            "pageLength": 5,  // Mostra 5 registros por padrão
+            "lengthMenu": [5, 10, 25, 50, 100],  // Opções de quantidade de registros por página
+            "language": {
+                "lengthMenu": "Mostrar _MENU_ registros por página",
+                "zeroRecords": "Nenhum registro encontrado",
+                "info": "Mostrando página _PAGE_ de _PAGES_",
+                "infoEmpty": "Nenhum registro disponível",
+                "infoFiltered": "(filtrado de _MAX_ registros totais)",
+                "search": "Pesquisar:",
+                "paginate": {
+                    "first": "Primeiro",
+                    "last": "Último",
+                    "next": "Próximo",
+                    "previous": "Anterior"
+                }
+            },
+            "dom": '<"top"lf>rt<"bottom"ip>',  // Layout dos controles
+            "responsive": true  // Tabela responsiva
+        });
+    });
+</script>
 
 
 <script>

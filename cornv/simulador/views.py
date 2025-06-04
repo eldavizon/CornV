@@ -249,7 +249,6 @@ def calcular_rendimento(request):
 
     if request.method == "POST":
         form = CalculoARTForm(request.POST)
-
         if form.is_valid():
             form = form.save(commit=False)
             q_milho = form.quantidade_milho
@@ -259,12 +258,11 @@ def calcular_rendimento(request):
             volume_etanol_art = calculo_art * fator_etanol_art * rendimento
             volume_etanol_ar = q_milho * teor_ar * fator_etanol_art * rendimento
             total_etanol_abs = volume_etanol_ar + volume_etanol_art
+            teorico_produzido = proporcao_teorica * q_milho
 
             form.quantidade_art = round(calculo_art, 4)
             form.volume_etanol = round(total_etanol_abs, 2)
             form.proporcao_producao = round((total_etanol_abs / q_milho), 4)
-
-            teorico_produzido = proporcao_teorica * q_milho
             form.rendimento_percentual = round(((total_etanol_abs / teorico_produzido) * 100), 2)
 
             form.save()
@@ -275,40 +273,38 @@ def calcular_rendimento(request):
     else:
         form = CalculoARTForm()
 
-    # Obter os 10 últimos processos de moagem
+    # Obter os 10 últimos registros de moagem
     ultimos_processos = ProcessoMoagem.objects.order_by('-data')[:10]
-    ultimos_calculos = []
+    quantidades_ultimas = [p.quantidade_milho for p in ultimos_processos]
 
-    for processo in ultimos_processos:
-        q_milho = processo.quantidade_milho
-
-        # Verifica se já existe um cálculo com essa quantidade
+    # Para cada quantidade, verifica se existe cálculo correspondente; se não, calcula e salva
+    for q_milho in quantidades_ultimas:
         if not CalculoART.objects.filter(quantidade_milho=q_milho).exists():
-            # Calcula e salva
             calculo_art = q_milho * teor_amido * amido_hidrolisavel * eficiencia_enzima * fator_hidratacao
             volume_etanol_art = calculo_art * fator_etanol_art * rendimento
             volume_etanol_ar = q_milho * teor_ar * fator_etanol_art * rendimento
             total_etanol_abs = volume_etanol_ar + volume_etanol_art
             teorico_produzido = proporcao_teorica * q_milho
 
-            novo_calc = CalculoART.objects.create(
+            CalculoART.objects.create(
                 quantidade_milho=q_milho,
                 quantidade_art=round(calculo_art, 4),
                 volume_etanol=round(total_etanol_abs, 2),
                 proporcao_producao=round((total_etanol_abs / q_milho), 4),
                 rendimento_percentual=round(((total_etanol_abs / teorico_produzido) * 100), 2)
             )
-            ultimos_calculos.append(novo_calc)
-        else:
-            # Recupera o cálculo existente
-            existente = CalculoART.objects.filter(quantidade_milho=q_milho).latest('data')
-            ultimos_calculos.append(existente)
+
+    # Obter apenas os registros condizentes com as quantidades moídas
+    items_filtrados = CalculoART.objects.filter(quantidade_milho__in=quantidades_ultimas).order_by('-data')
+
+    # Todos os cálculos (usado para a segunda tabela, se quiser no futuro)
+    todos_calculos = CalculoART.objects.all().order_by('-data')
 
     context = {
         'form': form,
-        'items': CalculoART.objects.all(),
-        'ultimos_calculos': ultimos_calculos,
+        'items': items_filtrados,
         'resultado_manual': resultado_manual,
+        'todos_calculos': todos_calculos,  # Se quiser usar em outro local
     }
 
     return render(request, 'simulador/calc_art.html', context)
