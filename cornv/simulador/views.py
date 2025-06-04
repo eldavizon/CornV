@@ -65,7 +65,8 @@ def processo(request):
                 "grafico": [
                     {
                         "tempo": d.tempo_h,
-                        "conc": d.concentracao_amido
+                        "conc": d.concentracao_amido,
+                        "produto": d.produto_gerado  # Adicione aqui
                     } for d in p.liquefacao.curva_dados.all()
                 ]
             } if hasattr(p, 'liquefacao') else None
@@ -131,8 +132,8 @@ def processo(request):
             # Extrai dados para simulação de liquefação
             modo = form.cleaned_data.get("modo")
             enzima_g = form.cleaned_data.get("enzima_g")
-            tempo_h = form.cleaned_data.get("tempo_h")
-            concentracao_desejada = form.cleaned_data.get("concentracao_desejada_g_L")
+            tempo_h = 12
+            concentracao_desejada = 200
 
 
             # Chama a função de simulação da liquefação
@@ -140,7 +141,6 @@ def processo(request):
                 massa_milho_kg=form_instance.milho_moido,
                 enzima_g=enzima_g,
                 tempo_h=tempo_h,
-                modo=modo,
                 concentracao_desejada_g_L=concentracao_desejada
             )
 
@@ -170,35 +170,55 @@ def processo(request):
 
 
             # Cria a curva de dados ponto a ponto no banco
-            for tempo, concentracao in zip(resultado_liquefacao["dados_t"], resultado_liquefacao["dados_S"]):
+            # Cria a curva de dados ponto a ponto no banco
+            for tempo, concentracao, produto in zip(resultado_liquefacao["dados_t"], resultado_liquefacao["dados_S"], resultado_liquefacao["dados_P"]):
                 CurvaLiquefacao.objects.create(
                     processo_liquefacao=liquefacao,
                     tempo_h=tempo,
-                    concentracao_amido=concentracao
+                    concentracao_amido=concentracao,
+                    produto_gerado=produto  # Salva o produto também
                 )
+
 
             # Gera novamente o gráfico com os dados recém-salvos
             curva_dados = CurvaLiquefacao.objects.filter(processo_liquefacao=liquefacao)
             tempos = [d.tempo_h for d in curva_dados]
             concentracoes = [d.concentracao_amido for d in curva_dados]
+            produtos = [d.produto_gerado for d in curva_dados]
 
             fig = Figure(
-                data=[Scatter(
-                    x=tempos,
-                    y=concentracoes,
-                    mode='lines+markers',
-                    name='Amido (g/L)',
-                    line=dict(color='orange', width=2),
-                    fill='tozeroy',
-                    fillcolor='rgba(255,165,0,0.2)'
-                )],
+                data=[
+                    Scatter(
+                        x=tempos,
+                        y=concentracoes,
+                        mode='lines+markers',
+                        name='Amido (g/L)',
+                        line=dict(color='orange', width=2),
+                        fill='tozeroy',
+                        fillcolor='rgba(255,165,0,0.2)'
+                    ),
+                    Scatter(
+                        x=tempos,
+                        y=produtos,
+                        mode='lines+markers',
+                        name='Produto (glicose g)',
+                        line=dict(color='green', width=2),
+                        yaxis='y2'
+                    ),
+                ],
                 layout=Layout(
                     title='Cinética da Liquefação Enzimática',
                     xaxis=dict(title='Tempo (h)'),
                     yaxis=dict(title='Concentração de Amido (g/L)'),
-                    height=400
+                    yaxis2=dict(
+                        title='Produto acumulado (g)',
+                        overlaying='y',
+                        side='right'
+                    ),
+                    height=450
                 )
             )
+
 
             grafico_liquefacao_json = json.dumps(fig, cls=PlotlyJSONEncoder)
 

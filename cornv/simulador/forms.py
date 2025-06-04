@@ -10,21 +10,11 @@ class CalculoARTForm(forms.ModelForm):
         
 
 class ProcessoMoagemForm(forms.ModelForm):
-    modo = forms.ChoiceField(
-        choices=[
-            ('tempo_por_enzima', 'Informar enzima (calcular tempo)'),
-            ('enzima_por_tempo', 'Informar tempo (calcular enzima)')
-        ],
-        widget=forms.RadioSelect,
-        label="Modo de simulação"
-    )
-    enzima_g = forms.FloatField(required=False, label="Quantidade de enzima (g)")
-    tempo_h = forms.FloatField(required=False, label="Tempo de reação (h)")
-    concentracao_desejada_g_L = forms.FloatField(required=False, label="Concentração desejada (g/L)")
 
+    enzima_g = forms.FloatField(required=True, label="Quantidade de enzima (g)")
 
     class Meta:
         model = ProcessoMoagem
-        fields = ['quantidade_milho', 'modo', 'enzima_g', 'tempo_h', 'concentracao_desejada_g_L']
+        fields = ['quantidade_milho', 'enzima_g']
 
         

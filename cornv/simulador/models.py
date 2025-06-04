@@ -42,6 +42,8 @@ class CurvaLiquefacao(models.Model):
     processo_liquefacao = models.ForeignKey(ProcessoLiquefacao, on_delete=models.CASCADE, related_name='curva_dados')
     tempo_h = models.FloatField(help_text="Tempo (h)")
     concentracao_amido = models.FloatField(help_text="Concentração de amido (g/L)")
+    produto_gerado = models.FloatField(null=True, blank=True)  # Novo campo
+
 
     class Meta:
         ordering = ['tempo_h']

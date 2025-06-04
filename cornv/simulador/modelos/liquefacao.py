@@ -27,131 +27,77 @@ def atividade_aparente(Vmax, T, pH):
 # Função principal de simulação do processo de liquefação
 def simular_liquefacao(
     massa_milho_kg: float,
-    enzima_g: Optional[float] = None,
-    tempo_h: Optional[float] = None,
-    modo: Literal["tempo_por_enzima", "enzima_por_tempo"] = "tempo_por_enzima",
-    fator_amido_milho: float = 0.6,          # Fração de amido no milho (60%)
-    densidade_medio_L: float = 1.05,          # Densidade média da mistura (kg/L)
-    concentracao_desejada_g_L: Optional[float] = None,  # Concentração alvo de amido
-    T_operacao: float = 85,                   # Temperatura real de operação
-    pH_operacao: float = 6.0,                 # pH real de operação
+    enzima_g: float,
+    tempo_h: float,
+    fator_amido_milho: float = 0.6,
+    densidade_medio_L: float = 1.05,
+    concentracao_desejada_g_L: Optional[float] = None,
+    T_operacao: float = 85,
+    pH_operacao: float = 6.0,
 ) -> dict:
-    """Simula o processo de hidrólise enzimática do amido do milho"""
-    
-    # Validação de entradas conforme modo selecionado
-    if modo == "tempo_por_enzima" and enzima_g is None:
-        return {"erro": "Informe a quantidade de enzima."}
-    if modo == "enzima_por_tempo" and tempo_h is None:
-        return {"erro": "Informe o tempo de reação."}
+    """Simula o processo de hidrólise enzimática do amido do milho com tempo fixo."""
 
-    # Cálculo da massa de amido presente no milho
+    # Massa de amido
     massa_amido_kg = massa_milho_kg * fator_amido_milho
-    massa_amido_g = massa_amido_kg * 1000  # Conversão para gramas
+    massa_amido_g = massa_amido_kg * 1000
 
-    # Cálculo do volume total do reator
+    # Volume do reator
     if concentracao_desejada_g_L:
-        volume_L = massa_amido_g / concentracao_desejada_g_L  # Volume para atingir concentração desejada
+        volume_L = massa_amido_g / concentracao_desejada_g_L
     else:
-        volume_L = massa_milho_kg / densidade_medio_L  # Volume baseado apenas na massa de milho
+        volume_L = massa_milho_kg / densidade_medio_L
 
-    # Cálculo de volumes adicionais
     volume_milho_L = massa_milho_kg / densidade_medio_L
-    volume_agua_adicionado_L = max(volume_L - volume_milho_L, 0)  # Água necessária para ajuste
+    volume_agua_adicionado_L = max(volume_L - volume_milho_L, 0)
 
-    # Concentração inicial de substrato (amido)
     conc_inicial_g_L = massa_amido_g / volume_L
 
-    # Parâmetros para simulação numérica
-    dt = 0.01  # Passo temporal (0.01 h = 36 segundos)
-    S = conc_inicial_g_L  # Concentração inicial de substrato
-    t = 0  # Tempo inicial
-    tempo_max = tempo_h if modo == "enzima_por_tempo" else 8  # Tempo máximo de simulação (8h padrão)
-
-    # Listas para armazenar resultados
+    # Simulação numérica
+    dt = 0.01
+    t = 0
+    S = conc_inicial_g_L
     lista_t = [t]
     lista_S = [S]
+    lista_P = [0]  # Produto inicial
 
-    epsilon = 1e-6  # Valor mínimo considerado para concentração
+    epsilon = 1e-6
+    Vmax_ajustado = atividade_aparente(Vmax_std * enzima_g, T_operacao, pH_operacao)
 
-    # Modo 1: Encontrar quantidade de enzima necessária para um tempo específico
-    if modo == "enzima_por_tempo":
-        enzima_g = 0.1  # Começa com 0.1g e incrementa
-        encontrado = False
-        
-        # Loop para encontrar a dose mínima de enzima que atinge 90% de conversão
-        while enzima_g <= 100:
-            Vmax_ajustado = atividade_aparente(Vmax_std * enzima_g, T_operacao, pH_operacao)
-            
-            # Simulação temporária para testar conversão
-            S_temp = conc_inicial_g_L
-            t_temp = 0
-            while t_temp < tempo_h:
-                # Modelo de Michaelis-Menten (equação diferencial)
-                dSdt = - (Vmax_ajustado * S_temp) / (Km + S_temp)
-                S_temp += dSdt * dt  # Método de Euler explícito
-                S_temp = max(S_temp, 0)
-                t_temp += dt
-                if S_temp <= epsilon:
-                    S_temp = 0
-                    break
-            
-            # Verifica se atingiu pelo menos 90% de conversão
-            conversao = (conc_inicial_g_L - S_temp) / conc_inicial_g_L
-            if conversao >= 0.9:
-                encontrado = True
-                break
-            enzima_g += 0.1  # Incrementa dose de enzima
+    while t < tempo_h:
+        dSdt = - (Vmax_ajustado * S) / (Km + S)
+        S += dSdt * dt
+        S = max(S, 0)
+        t += dt
+        lista_t.append(t)
+        lista_S.append(S)
 
-        # Trata casos onde não foi encontrada solução
-        if not encontrado:
-            enzima_g = None
-        else:
-            # Refaz a simulação com a enzima encontrada para armazenar os dados
-            S = conc_inicial_g_L
-            t = 0
-            lista_t = [t]
-            lista_S = [S]
-            while t < tempo_h:
-                dSdt = - (Vmax_ajustado * S) / (Km + S)
-                S += dSdt * dt
-                S = max(S, 0)
-                t += dt
-                lista_t.append(t)
-                lista_S.append(S)
-                if S <= epsilon:
-                    S = 0
-                    break
+        # Produto acumulado = diferença em relação à concentração inicial
+        produto_g = (conc_inicial_g_L - S) * volume_L
+        lista_P.append(produto_g)
 
-    # Modo 2: Simular processo com dose fixa de enzima até tempo máximo
-    elif modo == "tempo_por_enzima":
-        Vmax_ajustado = atividade_aparente(Vmax_std * enzima_g, T_operacao, pH_operacao)
-        while t < tempo_max:
-            dSdt = - (Vmax_ajustado * S) / (Km + S)
-            S += dSdt * dt
-            S = max(S, 0)
-            t += dt
-            lista_t.append(t)
-            lista_S.append(S)
-            if S <= epsilon:
-                S = 0
-                break
+        if S <= epsilon:
+            S = 0
+            break
 
-    # Cálculos finais de resultados
     S_final = lista_S[-1]
-    massa_glicose_g = (conc_inicial_g_L - S_final) * volume_L  # Massa produzida
-    conversao_percentual = (massa_glicose_g / massa_amido_g) * 100  # % de conversão
+    P_final = lista_P[-1]
 
-    # Retorna dicionário com todos os resultados
+    massa_glicose_g = P_final * volume_L
+    conversao_percentual = (massa_glicose_g / massa_amido_g) * 100
+
     return {
-        "dados_t": lista_t,  # Lista de tempos simulados
-        "dados_S": lista_S,  # Lista de concentrações de substrato
-        "tempo_h": t,       # Tempo total de simulação
+        "dados_t": lista_t,
+        "dados_S": lista_S,
+        "dados_P": lista_P,
+        "tempo_h": t,
         "massa_glicose_g": massa_glicose_g,
         "conversao_percentual": conversao_percentual,
-        "enzima_g": enzima_g,  # Quantidade de enzima usada/encontrada
+        "enzima_g": enzima_g,
         "concentracao_amido_inicial": conc_inicial_g_L,
         "concentracao_amido_final": S_final,
+        "concentracao_produto_final": P_final,
         "volume_total_L": volume_L,
         "volume_milho_L": volume_milho_L,
         "volume_agua_adicionado_L": volume_agua_adicionado_L,
     }
+#fim
