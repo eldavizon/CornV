@@ -231,72 +231,88 @@ def processo(request):
 
 
 
-@login_required(login_url='user-login', ) # está configurado nas settings > login_url.
+from django.db.models import Q
+
+@login_required(login_url='user-login')
 def calcular_rendimento(request):
-    
-    items = CalculoART.objects.all()
-    #    items = Produto.objects.raw() significaria usar o código SQL bruto ao invés do ORM.
-    
-    if request.method=="POST":
+    # Constantes do cálculo
+    teor_amido = 0.63
+    amido_hidrolisavel = 0.99
+    eficiencia_enzima = 0.97
+    fator_hidratacao = 1.11
+    rendimento = 0.9148
+    fator_etanol_art = 0.647549868378450666554049298253020
+    teor_ar = 0.023
+    proporcao_teorica = 0.4497
+
+    resultado_manual = None
+
+    if request.method == "POST":
         form = CalculoARTForm(request.POST)
-        
+
         if form.is_valid():
             form = form.save(commit=False)
-            
-            # multiplica-se pela quantidade media de amido no milho (63%), pelo fator de conversão pra art (1,11) e pela eficiencia das enzimas (97%),
-            #e por 99% (teor de amido hidrolisável)
-            
-            #constantes
-            teor_amido = 0.63
-            amido_hidrolisavel = 0.99
-            eficiencia_enzima = 0.97
-            fator_hidratacao = 1.11
-            
-            calculo_art = form.quantidade_milho * teor_amido * amido_hidrolisavel * eficiencia_enzima  * fator_hidratacao
-            
-            form.quantidade_art = round(calculo_art , 4)
-            
-            
-            # multiplica-se pela quantidade de etanol absoluto produzido por g de art (0,6475)
-            # e soma-se pela quantidade de AR já contida no milho (2,3%) multiplicada pelo fator de produção (0,6475)
-            
-            #constantes
-            rendimento = 0.9148
-            fator_etanol_art = 0.647549868378450666554049298253020
-            teor_ar = 0.023
-            
+            q_milho = form.quantidade_milho
+
+            # Cálculos
+            calculo_art = q_milho * teor_amido * amido_hidrolisavel * eficiencia_enzima * fator_hidratacao
             volume_etanol_art = calculo_art * fator_etanol_art * rendimento
-            volume_etanol_ar = form.quantidade_milho * teor_ar * fator_etanol_art * rendimento
+            volume_etanol_ar = q_milho * teor_ar * fator_etanol_art * rendimento
             total_etanol_abs = volume_etanol_ar + volume_etanol_art
-            
+
+            form.quantidade_art = round(calculo_art, 4)
             form.volume_etanol = round(total_etanol_abs, 2)
-            
-            # l/kg = produzido / milho de entrada
-            form.proporcao_producao = round((total_etanol_abs / form.quantidade_milho), 4)
-            
-            # rendimento percentual:
-            
-            # teoricamente, 1 kg de milho produz 0.4497L de etanol absoluto
-            proporcao_teorica = 0.4497
-            teorico_produzido = proporcao_teorica * form.quantidade_milho
-            
+            form.proporcao_producao = round((total_etanol_abs / q_milho), 4)
+
+            teorico_produzido = proporcao_teorica * q_milho
             form.rendimento_percentual = round(((total_etanol_abs / teorico_produzido) * 100), 2)
-            
-            form.save() 
-            quantidade = form.quantidade_milho
-            messages.success(request, f'{quantidade}kg de milho foram convertidos para ART e etanol.')
-            
+
+            form.save()
+            resultado_manual = form
+
+            messages.success(request, f'{q_milho}kg de milho foram convertidos para ART e etanol.')
             return redirect('calcular-rendimento')
     else:
         form = CalculoARTForm()
-    
-        
-    context= {
-        'items': items,
-        'form' : form,
+
+    # Obter os 10 últimos processos de moagem
+    ultimos_processos = ProcessoMoagem.objects.order_by('-data')[:10]
+    ultimos_calculos = []
+
+    for processo in ultimos_processos:
+        q_milho = processo.quantidade_milho
+
+        # Verifica se já existe um cálculo com essa quantidade
+        if not CalculoART.objects.filter(quantidade_milho=q_milho).exists():
+            # Calcula e salva
+            calculo_art = q_milho * teor_amido * amido_hidrolisavel * eficiencia_enzima * fator_hidratacao
+            volume_etanol_art = calculo_art * fator_etanol_art * rendimento
+            volume_etanol_ar = q_milho * teor_ar * fator_etanol_art * rendimento
+            total_etanol_abs = volume_etanol_ar + volume_etanol_art
+            teorico_produzido = proporcao_teorica * q_milho
+
+            novo_calc = CalculoART.objects.create(
+                quantidade_milho=q_milho,
+                quantidade_art=round(calculo_art, 4),
+                volume_etanol=round(total_etanol_abs, 2),
+                proporcao_producao=round((total_etanol_abs / q_milho), 4),
+                rendimento_percentual=round(((total_etanol_abs / teorico_produzido) * 100), 2)
+            )
+            ultimos_calculos.append(novo_calc)
+        else:
+            # Recupera o cálculo existente
+            existente = CalculoART.objects.filter(quantidade_milho=q_milho).latest('data')
+            ultimos_calculos.append(existente)
+
+    context = {
+        'form': form,
+        'items': CalculoART.objects.all(),
+        'ultimos_calculos': ultimos_calculos,
+        'resultado_manual': resultado_manual,
     }
-    
+
     return render(request, 'simulador/calc_art.html', context)
+
 
 @login_required(login_url='user-login', ) # está configurado nas settings > login_url.
 def obter_dados_historico(request):
