@@ -192,17 +192,32 @@
         </div>
     </div>
 
-    <!-- Gráfico com design moderno -->
+        <!-- Gráficos lado a lado -->
     <div class="row mt-4">
-        <div class="col-12">
+        <!-- Primeiro gráfico -->
+        <div class="col-md-6">
             <div class="card border-0 shadow-sm" style="border-radius: 12px;">
                 <div class="card-header bg-white border-0">
                     <h5 class="mb-0">
-                        <i class="bi bi-graph-up text-primary me-2"></i>Gráfico de Liquefação (Amido vs Tempo)
+                        <i class="bi bi-graph-up text-primary me-2"></i>Gráfico de Liquefação (Produto (g) vs Tempo)
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div id="grafico-liquefacao" style="width: 100%; height: 400px;"></div>
+                    <div id="grafico-liquefacao-produto" style="width: 100%; height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Segundo gráfico -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up text-primary me-2"></i>Gráfico de Liquefação (Amido (g/L) vs Tempo)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="grafico-liquefacao-substrato" style="width: 100%; height: 400px;"></div>
                 </div>
             </div>
         </div>
@@ -297,59 +312,76 @@
             // Exibe o bloco com os dados de liquefação
             document.getElementById("dados-liquefacao").classList.remove("d-none");
 
-            // Cria um gráfico com a curva de concentração de amido ao longo do tempo
-            const trace = {
-                x: l.grafico.map(p => p.tempo),  // Eixo X: tempo
-                y: l.grafico.map(p => parseFloat(p.conc).toFixed(4)),  // Eixo Y: concentração
+            // Gráfico de Produto Gerado
+            const traceProduto = {
+                x: l.grafico.map(p => p.tempo),
+                y: l.grafico.map(p => parseFloat(p.produto).toFixed(4)),
                 type: 'scatter',
                 mode: 'lines+markers',
-                fill: 'tozeroy',  // Preenche abaixo da curva
-                line: { color: 'orange' },
-                name: 'Amido (g/L)'
+                fill: 'tozeroy',
+                line: { color: 'green' },
+                name: 'Produto Gerado (g)'
             };
 
-            const layout = {
-            title: {
-                text: 'Cinética da Liquefação Enzimática',
-                font: {
-                    size: 18,
-                    family: 'Arial, sans-serif',
-                    color: '#333'
-                },
-                x: 0.05,
-                xanchor: 'left'
-            },
-            xaxis: {
+            const layoutProduto = {
                 title: {
-                    text: 'Tempo (h)',
-                    font: { size: 14, color: '#333' }
+                    text: 'Geração de Dextrinas ao Longo do Tempo',
+                    font: { size: 18, family: 'Arial, sans-serif', color: '#333' },
+                    x: 0.05, xanchor: 'left'
                 },
-                showline: true,
-                linewidth: 2,
-                linecolor: '#ccc',
-                mirror: true,
-                zeroline: false
-            },
-            yaxis: {
+                xaxis: {
+                    title: { text: 'Tempo (h)', font: { size: 14, color: '#333' } },
+                    showline: true, linewidth: 2, linecolor: '#ccc',
+                    mirror: true, zeroline: false
+                },
+                yaxis: {
+                    title: { text: 'Produto Gerado (g)', font: { size: 14, color: '#333' } },
+                    showline: true, linewidth: 2, linecolor: '#ccc',
+                    mirror: true, zeroline: false
+                },
+                margin: { t: 60, l: 60, r: 30, b: 60 },
+                height: 400,
+                plot_bgcolor: '#f9f9f9',
+                paper_bgcolor: '#fff'
+            };
+
+            Plotly.newPlot('grafico-liquefacao-produto', [traceProduto], layoutProduto);
+
+            // 🔹 Novo Gráfico de Concentração do Substrato
+            const traceSubstrato = {
+                x: l.grafico.map(p => p.tempo),
+                y: l.grafico.map(p => parseFloat(p.conc).toFixed(4)),
+                type: 'scatter',
+                mode: 'lines+markers',
+                fill: 'tozeroy',
+                line: { color: 'orange' },
+                name: 'Concentração de Amido (g/L)'
+            };
+
+            const layoutSubstrato = {
                 title: {
-                    text: 'Concentração de Amido (g/L)',
-                    font: { size: 14, color: '#333' }
+                    text: 'Concentração de Amido ao Longo do Tempo',
+                    font: { size: 18, family: 'Arial, sans-serif', color: '#333' },
+                    x: 0.05, xanchor: 'left'
                 },
-                showline: true,
-                linewidth: 2,
-                linecolor: '#ccc',
-                mirror: true,
-                zeroline: false
-            },
-            margin: { t: 60, l: 60, r: 30, b: 60 },
-            height: 400,
-            plot_bgcolor: '#f9f9f9',
-            paper_bgcolor: '#fff'
-        };
+                xaxis: {
+                    title: { text: 'Tempo (h)', font: { size: 14, color: '#333' } },
+                    showline: true, linewidth: 2, linecolor: '#ccc',
+                    mirror: true, zeroline: false
+                },
+                yaxis: {
+                    title: { text: 'Concentração de Amido (g/L)', font: { size: 14, color: '#333' } },
+                    showline: true, linewidth: 2, linecolor: '#ccc',
+                    mirror: true, zeroline: false
+                },
+                margin: { t: 60, l: 60, r: 30, b: 60 },
+                height: 400,
+                plot_bgcolor: '#f9f9f9',
+                paper_bgcolor: '#fff'
+            };
 
+            Plotly.newPlot('grafico-liquefacao-substrato', [traceSubstrato], layoutSubstrato);
 
-            // Renderiza o gráfico no elemento com id 'grafico-liquefacao'
-            Plotly.newPlot('grafico-liquefacao', [trace], layout);
         }
 
         // Exibe o card de simulação na interface
