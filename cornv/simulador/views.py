@@ -298,7 +298,6 @@ def calcular_rendimento(request):
     
     return render(request, 'simulador/calc_art.html', context)
 
-
 @login_required(login_url='user-login', ) # está configurado nas settings > login_url.
 def obter_dados_historico(request):
     try:

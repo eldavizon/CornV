@@ -3,96 +3,153 @@
 {% load crispy_forms_tags %}
 
 {% block content %} 
-
-<!--Table-->
-<div class="container mt-4 text-center p-3">
-
-    <div class="row my-4">
-        <div class="col-md-4">
-            
-            {% for message in messages %}
-            {% if message%}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-            {% endif %}
-            {% endfor %}
-
-            <div class="border bg-white p-3">
-                <h4>Converter de kg de milho para kg de ART</h4>
-                <hr>
-                <form method="POST" action="">
-                    
-                    {% csrf_token %}
-
-                    {{ form|crispy }}
-
-                    <input class="btn btn-success btn-block" type="submit" value="Converter">
-
-                </form>
-            </div>
-        </div>
-        <div class="col-md-8">
-            <table id="datatablesSimple" class="table bg-white">
-                <thead class="bg-info">
-                    <tr class="text-white">
-                        <th scope="col">Data do cálculo</th>
-                        <th scope="col">Quantidade de milho (Kg)</th>
-                        <th scope="col">Quantidade de ART (Kg)</th>
-                        <th scope="col">Volume de etanol absoluto esperado (L)</th>
-                        <th scope="col">L/Kg (etanol absoluto)</th>
-                        <th scope="col">Rendimento (%)</th>
-
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in items %}
-
-                    <tr>
-                        <td>{{item.data}}</td>
-                        <td>{{item.quantidade_milho}}</td>
-                        <td>{{item.quantidade_art}}</td>
-                        <td>{{item.volume_etanol}}</td>
-                        <td>{{item.proporcao_producao}}</td>
-                        <td>{{item.rendimento_percentual}}</td>
-                    </tr>
-
+<div class="container mt-4">
+    <div class="row">
+        <!-- Formulário -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-exchange-alt me-2"></i>Conversor Teórico Milho-ART</h4>
+                </div>
+                <div class="card-body">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                     {% endfor %}
                     
-                </tbody>
-            </table>
+                    <p class="text-muted">Preencha os dados para converter quilogramas de milho em ART</p>
+                    <form method="POST" action="" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ form|crispy }}
+                        </div>
+                        
+                        <button class="btn btn-success w-100 py-2" type="submit">
+                            <i class="fas fa-calculator me-2"></i>Calcular Conversão
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">* Todos os campos são obrigatórios</small>
+                </div>
+            </div>
         </div>
 
-        <div class="p-3" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-around;">
+        <!-- Tabela de registros automáticos -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-history me-2"></i>Conversão Teórica das Últimas Simulações</h4>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table id="datatablesSimple" class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th><i class="far fa-calendar-alt me-1"></i> Data</th>
+                                    <th><i class="fas fa-weight me-1"></i> Milho (Kg)</th>
+                                    <th><i class="fas fa-weight me-1"></i> ART (Kg)</th>
+                                    <th><i class="fas fa-wine-bottle me-1"></i> Etanol (L)</th>
+                                    <th><i class="fas fa-percentage me-1"></i> L/Kg</th>
+                                    <th><i class="fas fa-chart-line me-1"></i> Rendimento</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in items %}
+                                <tr>
+                                    <td>{{ item.data|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ item.quantidade_milho }}</td>
+                                    <td class="fw-bold text-success">{{ item.quantidade_art }}</td>
+                                    <td>{{ item.volume_etanol }}</td>
+                                    <td>{{ item.proporcao_producao }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if item.rendimento_percentual >= 90 %}success{% elif item.rendimento_percentual >= 70 %}warning{% else %}danger{% endif %}">
+                                            {{ item.rendimento_percentual }}%
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
-            <!-- Gráfico 1: Rendimento ao longo do tempo -->
-            <div class="bg-white p-3 rounded shadow" style="width: 48%; max-width: 600px;">
-                <canvas id="graficoRendimentoTempo" style="width: 100%; height: 300px;"></canvas>
+            <!-- Tabela do resultado manual -->
+            {% if resultado_manual %}
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0"><i class="fas fa-search me-2"></i>Resultado da Simulação Atual</h4>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-info">
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Milho (Kg)</th>
+                                    <th>ART (Kg)</th>
+                                    <th>Etanol (L)</th>
+                                    <th>L/Kg</th>
+                                    <th>Rendimento</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="table-active">
+                                    <td>{{ resultado_manual.data|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ resultado_manual.quantidade_milho }}</td>
+                                    <td class="fw-bold text-primary">{{ resultado_manual.quantidade_art }}</td>
+                                    <td>{{ resultado_manual.volume_etanol }}</td>
+                                    <td>{{ resultado_manual.proporcao_producao }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if resultado_manual.rendimento_percentual >= 90 %}success{% elif resultado_manual.rendimento_percentual >= 70 %}warning{% else %}danger{% endif %}">
+                                            {{ resultado_manual.rendimento_percentual }}%
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-light">
+                    <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
+                        <i class="fas fa-print me-1"></i>Imprimir Resultado
+                    </button>
+                </div>
             </div>
-        
-            <!-- Gráfico 2: Etanol produzido ao longo do tempo -->
-            <div class="bg-white p-3 rounded shadow" style="width: 48%; max-width: 600px;">
-                <canvas id="graficoEtanolTempo" style="width: 100%; height: 300px;"></canvas>
-            </div>
-        
-            <!-- Gráfico 3: Etanol Produzido (barras) x Rendimento (%) (linha) -->
-            <div class="bg-white p-3 rounded shadow"  style="width: 48%; max-width: 600px;">
-                <canvas id="graficoMisto" style="width: 100%; height: 300px;"></canvas>
-            </div>
-        
-            <!-- Gráfico 4: Milho Processado x Etanol Produzido -->
-            <div class="bg-white p-3 rounded shadow" style="width: 48%; max-width: 600px;">
-                <canvas id="graficoMilhoVsEtanol" style="width: 100%; height: 300px;"></canvas>
-            </div>
-        
+            {% endif %}
         </div>
-        
-        <!-- ChartJS CDN -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-
+    </div>
 </div>
 
+<!-- Adicione esses links no cabeçalho do seu template -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    .card {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .card-header {
+        border-radius: 0 !important;
+    }
+    .table th {
+        white-space: nowrap;
+    }
+    .form-control:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
+    }
+    .badge {
+        font-size: 0.85em;
+        padding: 0.35em 0.65em;
+    }
+</style>
 
 
 <script>
