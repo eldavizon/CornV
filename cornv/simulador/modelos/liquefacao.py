@@ -82,7 +82,7 @@ def simular_liquefacao(
     S_final = lista_S[-1]
     P_final = lista_P[-1]
 
-    massa_glicose_g = P_final * volume_L
+    massa_glicose_g = P_final  # P_final já está em gramas
     conversao_percentual = (massa_glicose_g / massa_amido_g) * 100
 
     return {
