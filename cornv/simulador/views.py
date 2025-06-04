@@ -131,7 +131,7 @@ def processo(request):
             # Extrai dados para simulação de liquefação
             modo = form.cleaned_data.get("modo")
             enzima_g = form.cleaned_data.get("enzima_g")
-            tempo_h = form.cleaned_data.get("tempo_h")
+            tempo_h = 12
             concentracao_desejada = form.cleaned_data.get("concentracao_desejada_g_L")
 
 
@@ -140,7 +140,6 @@ def processo(request):
                 massa_milho_kg=form_instance.milho_moido,
                 enzima_g=enzima_g,
                 tempo_h=tempo_h,
-                modo=modo,
                 concentracao_desejada_g_L=concentracao_desejada
             )
 
