@@ -25,6 +25,7 @@ class ProcessoLiquefacao(models.Model):
     volume_reacao_L = models.FloatField(null=True, help_text="Volume da reação (L)")
     conc_amido_inicial = models.FloatField(null=True, help_text="Concentração inicial de amido (kg/L)")
     conc_amido_final = models.FloatField(null=True, help_text="Concentração final de amido (kg/L)")
+    massa_oligossacarideos = models.FloatField(null=True, help_text="Oligossacarideos gerados (kg)")
     art_gerada = models.FloatField(null=True, help_text="Glicose fermentescível (ART) gerada (kg)")
     enzima_usada = models.FloatField(null=True, blank=True, help_text="Enzima utilizada ou necessária (g)")
     volume_total_L = models.FloatField(null=True, help_text="Volume total do processo (L)")
@@ -43,6 +44,8 @@ class CurvaLiquefacao(models.Model):
     tempo_h = models.FloatField(help_text="Tempo (h)")
     concentracao_amido = models.FloatField(help_text="Concentração de amido (g/L)")
     produto_gerado = models.FloatField(null=True, blank=True)  # Novo campo
+    art = models.FloatField(null=True, blank=True)
+    oligos = models.FloatField(null=True, blank=True)
 
 
     class Meta:

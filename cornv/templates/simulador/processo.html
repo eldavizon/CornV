@@ -312,20 +312,28 @@
             // Exibe o bloco com os dados de liquefação
             document.getElementById("dados-liquefacao").classList.remove("d-none");
 
-            // Gráfico de Produto Gerado
-            const traceProduto = {
+            // Gráficos separados para ART e Oligossacarídeos
+            const traceART = {
                 x: l.grafico.map(p => p.tempo),
-                y: l.grafico.map(p => parseFloat(p.produto).toFixed(4)),
+                y: l.grafico.map(p => parseFloat(p.art).toFixed(4)),
                 type: 'scatter',
                 mode: 'lines+markers',
-                fill: 'tozeroy',
-                line: { color: 'green' },
-                name: 'Produto Gerado (g)'
+                name: 'ART (g)',
+                line: { color: 'green', width: 2 }
+            };
+
+            const traceOligos = {
+                x: l.grafico.map(p => p.tempo),
+                y: l.grafico.map(p => parseFloat(p.oligos).toFixed(4)),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Oligossacarídeos (g)',
+                line: { color: 'blue', dash: 'dot', width: 2 }
             };
 
             const layoutProduto = {
                 title: {
-                    text: 'Geração de Dextrinas ao Longo do Tempo',
+                    text: 'Geração de Produtos ao Longo do Tempo',
                     font: { size: 18, family: 'Arial, sans-serif', color: '#333' },
                     x: 0.05, xanchor: 'left'
                 },
@@ -335,7 +343,7 @@
                     mirror: true, zeroline: false
                 },
                 yaxis: {
-                    title: { text: 'Produto Gerado (g)', font: { size: 14, color: '#333' } },
+                    title: { text: 'Massa (g)', font: { size: 14, color: '#333' } },
                     showline: true, linewidth: 2, linecolor: '#ccc',
                     mirror: true, zeroline: false
                 },
@@ -345,7 +353,7 @@
                 paper_bgcolor: '#fff'
             };
 
-            Plotly.newPlot('grafico-liquefacao-produto', [traceProduto], layoutProduto);
+            Plotly.newPlot('grafico-liquefacao-produto', [traceART, traceOligos], layoutProduto);
 
             // 🔹 Novo Gráfico de Concentração do Substrato
             const traceSubstrato = {

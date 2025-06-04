@@ -66,7 +66,8 @@ def processo(request):
                     {
                         "tempo": d.tempo_h,
                         "conc": d.concentracao_amido,
-                        "produto": d.produto_gerado  # Adicione aqui
+                        "art": d.art,
+                        "oligos": d.oligos
                     } for d in p.liquefacao.curva_dados.all()
                 ]
             } if hasattr(p, 'liquefacao') else None
@@ -155,13 +156,14 @@ def processo(request):
             # Cria instância de ProcessoLiquefacao vinculada ao processo de moagem atual
             liquefacao = ProcessoLiquefacao.objects.create(
                 processo=form_instance,
-                amido_convertido=resultado_liquefacao["massa_glicose_g"] / 1000,
+                amido_convertido=resultado_liquefacao["massa_art_g"] / 1000,
                 conversao_amido=resultado_liquefacao["conversao_percentual"],
                 tempo_liquefacao=resultado_liquefacao["tempo_h"],
                 volume_reacao_L=form_instance.milho_moido / 1.05,
                 conc_amido_inicial=resultado_liquefacao["concentracao_amido_inicial"] / 1000,
                 conc_amido_final=resultado_liquefacao["concentracao_amido_final"] / 1000,
-                art_gerada=resultado_liquefacao["massa_glicose_g"] / 1000,
+                massa_oligossacarideos=resultado_liquefacao["massa_oligossacarideos_g"] / 1000,
+                art_gerada=resultado_liquefacao["massa_art_g"] / 1000,
                 enzima_usada=enzima_g if enzima_g else resultado_liquefacao["enzima_g"],
                 volume_total_L=resultado_liquefacao["volume_total_L"],
                 volume_milho_L=resultado_liquefacao["volume_milho_L"],
@@ -171,20 +173,27 @@ def processo(request):
 
             # Cria a curva de dados ponto a ponto no banco
             # Cria a curva de dados ponto a ponto no banco
-            for tempo, concentracao, produto in zip(resultado_liquefacao["dados_t"], resultado_liquefacao["dados_S"], resultado_liquefacao["dados_P"]):
+            for tempo, conc, art, oligos in zip(
+                resultado_liquefacao["dados_t"],
+                resultado_liquefacao["dados_S"],
+                resultado_liquefacao["dados_ART"],
+                resultado_liquefacao["dados_oligos"]):
+                
                 CurvaLiquefacao.objects.create(
                     processo_liquefacao=liquefacao,
                     tempo_h=tempo,
-                    concentracao_amido=concentracao,
-                    produto_gerado=produto  # Salva o produto também
+                    concentracao_amido=conc,
+                    art=art,
+                    oligos=oligos,
+                    produto_gerado=art + oligos  # opcional
                 )
 
 
-            # Gera novamente o gráfico com os dados recém-salvos
             curva_dados = CurvaLiquefacao.objects.filter(processo_liquefacao=liquefacao)
             tempos = [d.tempo_h for d in curva_dados]
             concentracoes = [d.concentracao_amido for d in curva_dados]
-            produtos = [d.produto_gerado for d in curva_dados]
+            arts = [d.art for d in curva_dados]
+            oligos = [d.oligos for d in curva_dados]
 
             fig = Figure(
                 data=[
@@ -199,10 +208,18 @@ def processo(request):
                     ),
                     Scatter(
                         x=tempos,
-                        y=produtos,
+                        y=arts,
                         mode='lines+markers',
-                        name='Produto (glicose g)',
+                        name='ART (g)',
                         line=dict(color='green', width=2),
+                        yaxis='y2'
+                    ),
+                    Scatter(
+                        x=tempos,
+                        y=oligos,
+                        mode='lines+markers',
+                        name='Oligossacarídeos (g)',
+                        line=dict(color='blue', width=2, dash='dash'),
                         yaxis='y2'
                     ),
                 ],
@@ -218,6 +235,7 @@ def processo(request):
                     height=450
                 )
             )
+
 
 
             grafico_liquefacao_json = json.dumps(fig, cls=PlotlyJSONEncoder)
