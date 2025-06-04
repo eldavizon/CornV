@@ -132,7 +132,7 @@ def processo(request):
             modo = form.cleaned_data.get("modo")
             enzima_g = form.cleaned_data.get("enzima_g")
             tempo_h = 12
-            concentracao_desejada = form.cleaned_data.get("concentracao_desejada_g_L")
+            concentracao_desejada = 200
 
 
             # Chama a função de simulação da liquefação
