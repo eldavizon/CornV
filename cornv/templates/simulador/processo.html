@@ -19,126 +19,216 @@
     });
 </script>
 
-<div class="container-fluid mt-4 p-3">
-    <!-- Cabeçalho -->
-    <div class="row justify-content-between align-items-center mb-4">
-        <div class="col">
-            <h1 class="mb-0">Simulação de <span id="data-simulacao"> </span></h1>
+<div class="container-fluid mt-4 p-4" style="max-width: 1400px; margin: 0 auto;">
+    <!-- Cabeçalho melhorado -->
+    <div class="row justify-content-between align-items-center mb-4 p-3" style="background-color: #f8f9fa; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+        <div class="col-md-8">
+            <h1 class="mb-0 text-primary" style="font-weight: 600;">
+                <i class="bi bi-calculator me-2"></i>Simulação de <span id="data-simulacao" class="text-secondary"></span>
+            </h1>
+            <p class="text-muted mb-0 mt-1">Controle completo do processo de produção de etanol</p>
         </div>
-        <div class="col-auto">
-            <label for="selecao-simulacao" class="form-label"><strong>Selecionar simulação:</strong></label>
-            <select id="selecao-simulacao" class="form-select form-select-sm" onchange="exibirSimulacaoSelecionada(this)">
-                {% for simulacao in ultimas_simulacoes %}
-                    <option value="{{ simulacao.id }}">{{ simulacao.data }} - {{ simulacao.quantidade_milho }} kg</option>
-                {% endfor %}
-            </select>
+        <div class="col-md-4 text-end">
+            <div class="d-flex align-items-center justify-content-end gap-3">
+                <div>
+                    <label for="selecao-simulacao" class="form-label mb-1"><strong>Selecionar simulação:</strong></label>
+                    <select id="selecao-simulacao" class="form-select" onchange="exibirSimulacaoSelecionada(this)" style="border-radius: 8px; border: 1px solid #ced4da; min-width: 250px;">
+                        {% for simulacao in ultimas_simulacoes %}
+                            <option value="{{ simulacao.id }}">{{ simulacao.data }} - {{ simulacao.quantidade_milho }} kg</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button class="btn btn-outline-primary" style="border-radius: 8px; height: 38px;">
+                    <i class="bi bi-plus-lg"></i> Nova
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Mensagens -->
+    <!-- Mensagens com animação -->
     {% for message in messages %}
         {% if message %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+                <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% elif message.tags == 'error' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         {% endif %}
     {% endfor %}
 
-    <!-- Linha de conteúdo -->
-    <div class="row">
-        <!-- Formulário mais largo -->
-        <div class="col-12 mb-4">
-            <div class="border bg-white p-3 w-100">
+
+    <!-- Cards em grid responsivo -->
+    <div class="row g-4">
+        <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+            <div class="border bg-white p-3 h-100">
                 <h3>Moer milho</h3>
                 <hr>
-                <form method="POST" action="" class="d-flex flex-wrap align-items-end gap-3">
+                <form method="POST" action="">
                     {% csrf_token %}
                     {{ form|crispy }}
-                    <input class="btn btn-success" type="submit" value="Converter">
+                    <input class="btn btn-success btn-block" type="submit" value="Converter">
                 </form>
             </div>
         </div>
-
-        <!-- Cards em linhaa -->
-        <div class="d-flex flex-wrap gap-3 justify-content-start">
-
-            <!-- Moagem -->
-            <div class="p-3 bg-success text-white d-none" id="card-simulacao"
-                style="border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); min-width: 280px;">
-                <h4>Moagem</h4>
-                <h5><strong>Milho:</strong> <span id="milho"></span> kg</h5>
-                <h5><strong>Milho moído:</strong> <span id="milho-moido"></span> kg</h5>
-                <h5><strong>Energia total:</strong> <span id="energia"></span> kWh</h5>
+        <!-- Moagem -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; border-left: 4px solid #28a745;">
+                <div class="card-header bg-white border-0">
+                    <h4 class="mb-0">
+                        <i class="bi bi-arrow-repeat text-success me-2"></i>Moagem
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-column gap-2">
+                        <h5><strong>Milho:</strong> <span id="milho">0</span> kg</h5>
+                        <h5><strong>Milho moído:</strong> <span id="milho-moido">0</span> kg</h5>
+                        <h5><strong>Energia total:</strong> <span id="energia">0</span> kWh</h5>
+                    </div>
+                </div>
             </div>
-
-            <!-- Liquefação -->
-            <div class="p-3 text-white d-none" id="dados-liquefacao"
-                style="border-radius: 16px; background-color: #6d1a1a; box-shadow: 0 4px 12px rgba(0,0,0,0.08); min-width: 280px;">
-                <h4>Liquefação</h4>
-                <h5><strong>Amido convertido:</strong> <span id="amido"></span> kg</h5>
-                <h5><strong>Conversão do amido:</strong> <span id="conversao-amido"></span>%</h5>
-                <h5><strong>Tempo:</strong> <span id="tempo"></span> h</h5>
-                <h5><strong>Volume da reação:</strong> <span id="volume"></span> L</h5>
-                <h5><strong>Conc. amido final:</strong> <span id="conc-amido"></span> kg/L</h5>
-                <h5><strong>ART gerada:</strong> <span id="art"></span> kg</h5>
-                <h5><strong>Conversão percentual:</strong> <span id="percentual"></span>%</h5>
-                <h5><strong>Enzima:</strong> <span id="enzima"></span> g</h5>
-                <h5><strong>Volume total:</strong> <span id="volume-total"></span> L</h5>
-                <h5><strong>Volume milho (puro):</strong> <span id="volume-milho"></span> L</h5>
-                <h5><strong>Água adicionada:</strong> <span id="agua-adicionada"></span> L</h5>
-            </div>
-
-            <!-- Sacarificação -->
-            <div class="p-3 bg-warning text-dark"
-                style="border-radius: 16px; min-width: 280px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
-                <h4>Sacarificação</h4>
-                <h5><strong>Polissacarídeos:</strong> 0 kg</h5>
-                <h5><strong>Monossacarídeos:</strong> 0 kg</h5>
-                <h5><strong>Tempo:</strong> 0 h</h5>
-                <h5><strong>Enzima utilizada:</strong> 0 g</h5>
-            </div>
-
-            <!-- Fermentação -->
-            <div class="p-3 bg-primary text-white"
-                style="border-radius: 16px; min-width: 280px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
-                <h4>Fermentação</h4>
-                <h5><strong>Açúcar inicial:</strong> 0 kg</h5>
-                <h5><strong>Álcool produzido:</strong> 0 L</h5>
-                <h5><strong>Tempo:</strong> 0 h</h5>
-                <h5><strong>Eficiência:</strong> 0%</h5>
-                <h5><strong>Levedura:</strong> 0 g</h5>
-            </div>
-
-            <!-- Destilação -->
-            <div class="p-3 bg-dark text-white"
-                style="border-radius: 16px; min-width: 280px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
-                <h4>Destilação</h4>
-                <h5><strong>Volume bruto:</strong> 0 L</h5>
-                <h5><strong>Álcool recuperado:</strong> 0 L</h5>
-                <h5><strong>Energia consumida:</strong> 0 kWh</h5>
-                <h5><strong>Perdas:</strong> 0%</h5>
-            </div>
-
-            <!-- Produtos finais -->
-            <div class="p-3 bg-info text-dark"
-                style="border-radius: 16px; min-width: 280px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
-                <h4>Produtos Finais</h4>
-                <h5><strong>Etanol final:</strong> 0 L</h5>
-                <h5><strong>DDG gerado:</strong> 0 kg</h5>
-                <h5><strong>CO₂ emitido:</strong> 0 kg</h5>
-                <h5><strong>Valor de mercado:</strong> R$ 0</h5>
-            </div>
-
         </div>
 
-        <!-- Gráfico -->
-        <div class="card p-4 mt-4"
-            style="border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); background-color: #fff; border: 1px solid #dee2e6;">
-            <h5 style="font-size: 1rem;" class="mb-3">Gráfico de Liquefação (Amido vs Tempo)</h5>
-            <div id="grafico-liquefacao" style="width: 100%; height: 400px;"></div>
+        <!-- Liquefação -->
+        <div class="col-xl-3 col-lg-4 col-md-6" id="dados-liquefacao">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; border-left: 4px solid #6d1a1a;">
+                <div class="card-header bg-white border-0">
+                    <h4 class="mb-0">
+                        <i class="bi bi-droplet-half text-danger me-2"></i>Liquefação
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-column gap-2">
+                        <h5><strong>Amido convertido:</strong> <span id="amido">0</span> kg</h5>
+                        <h5><strong>Conversão do amido:</strong> <span id="conversao-amido">0</span>%</h5>
+                        <h5><strong>Tempo:</strong> <span id="tempo">0</span> h</h5>
+                        <h5><strong>Volume da reação:</strong> <span id="volume">0</span> L</h5>
+                        <h5><strong>Conc. amido final:</strong> <span id="conc-amido">0</span> kg/L</h5>
+                        <h5><strong>ART gerada:</strong> <span id="art">0</span> kg</h5>
+                        <h5><strong>Conversão percentual:</strong> <span id="percentual">0</span>%</h5>
+                        <h5><strong>Enzima:</strong> <span id="enzima">0</span> g</h5>
+                        <h5><strong>Volume total:</strong> <span id="volume-total">0</span> L</h5>
+                        <h5><strong>Volume milho (puro):</strong> <span id="volume-milho">0</span> L</h5>
+                        <h5><strong>Água adicionada:</strong> <span id="agua-adicionada">0</span> L</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sacarificação -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; border-left: 4px solid #ffc107;">
+                <div class="card-header bg-white border-0">
+                    <h4 class="mb-0">
+                        <i class="bi bi-bezier2 text-warning me-2"></i>Sacarificação
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-column gap-2">
+                        <h5><strong>Polissacarídeos:</strong> (dados estáticos)</h5>
+                        <h5><strong>Monossacarídeos:</strong> (dados estáticos)</h5>
+                        <h5><strong>Tempo:</strong> (dados estáticos)</h5>
+                        <h5><strong>Enzima utilizada:</strong> (dados estáticos)</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fermentação -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; border-left: 4px solid #0d6efd;">
+                <div class="card-header bg-white border-0">
+                    <h4 class="mb-0">
+                        <i class="bi bi-activity text-primary me-2"></i>Fermentação
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-column gap-2">
+                        <h5><strong>Açúcar inicial:</strong> (dados estáticos)</h5>
+                        <h5><strong>Álcool produzido:</strong> (dados estáticos)</h5>
+                        <h5><strong>Tempo:</strong> (dados estáticos)</h5>
+                        <h5><strong>Eficiência:</strong> (dados estáticos)</h5>
+                        <h5><strong>Levedura:</strong> (dados estáticos)</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Destilação -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; border-left: 4px solid #212529;">
+                <div class="card-header bg-white border-0">
+                    <h4 class="mb-0">
+                        <i class="bi bi-thermometer-high text-dark me-2"></i>Destilação
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-column gap-2">
+                        <h5><strong>Volume bruto:</strong> (dados estáticos)</h5>
+                        <h5><strong>Álcool recuperado:</strong> (dados estáticos)</h5>
+                        <h5><strong>Energia consumida:</strong> (dados estáticos)</h5>
+                        <h5><strong>Perdas:</strong> (dados estáticos)</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Produtos finais -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; border-left: 4px solid #0dcaf0;">
+                <div class="card-header bg-white border-0">
+                    <h4 class="mb-0">
+                        <i class="bi bi-box-seam text-info me-2"></i>Produtos Finais
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-column gap-2">
+                        <h5><strong>Etanol final:</strong> (dados estáticos)</h5>
+                        <h5><strong>DDG gerado:</strong> (dados estáticos)</h5>
+                        <h5><strong>CO₂ emitido:</strong> (dados estáticos)</h5>
+                        <h5><strong>Valor de mercado:</strong> (dados estáticos)</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico com design moderno -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up text-primary me-2"></i>Gráfico de Liquefação (Amido vs Tempo)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="grafico-liquefacao" style="width: 100%; height: 400px;"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
+<!-- Adicione esses links no head do seu documento para os ícones do Bootstrap -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
+<style>
+    .card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.1) !important;
+    }
+    .form-control, .form-select {
+        border-radius: 8px !important;
+        padding: 8px 12px !important;
+    }
+    .card-header {
+        padding: 1rem 1.25rem;
+        background-color: rgba(255,255,255,0.9) !important;
+    }
+</style>
 
 
 <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet">
