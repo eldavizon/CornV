@@ -15,6 +15,18 @@ class HistoricoPrecoMilho(models.Model):
 
     def __str__(self):
         return f"{self.data} - Milho: R$ {self.preco_milho}"
+    
+
+# ============================= MODELAGEM DE PROCESSOS =====================================================
+
+class ProcessoMoagem(models.Model):
+    quantidade_milho = models.FloatField(null=True)
+    milho_moido = models.FloatField(null=True)
+    energia_total = models.FloatField(null=True)
+    data = models.DateTimeField(auto_now_add=True, null=True)
+
+    def __str__(self):
+        return f"{self.quantidade_milho} kg - {self.milho_moido} moido - {self.data} - eficiencia: {self.eficiencia}"
 
 class ProcessoLiquefacao(models.Model):
     processo = models.OneToOneField('ProcessoMoagem', on_delete=models.CASCADE, related_name='liquefacao')
@@ -55,15 +67,43 @@ class CurvaLiquefacao(models.Model):
         return f"{self.tempo_h} h - {self.concentracao_amido:.2f} g/L"
 
 
-    
-class ProcessoMoagem(models.Model):
-    quantidade_milho = models.FloatField(null=True)
-    milho_moido = models.FloatField(null=True)
-    energia_total = models.FloatField(null=True)
-    data = models.DateTimeField(auto_now_add=True, null=True)
+
+class ProcessoSacarificacaoFermentacao(models.Model):
+    processo_liquefacao = models.ForeignKey(
+        'ProcessoLiquefacao',
+        on_delete=models.CASCADE,
+        related_name='sacarificacoes'
+    )
+
+    art_inicial = models.FloatField(help_text="Concentração inicial de ART (g/L) vindo da liquefação")
+    oligossacarideos_inicial = models.FloatField(help_text="Concentração inicial de oligossacarídeos (g/L) vindo da liquefação")
+    etanol_final = models.FloatField(help_text="Concentração final de etanol (g/L)")
+    biomassa_final = models.FloatField(help_text="Concentração final de biomassa celular (g/L)")
+    data = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.quantidade_milho} kg - {self.milho_moido} moido - {self.data} - eficiencia: {self.eficiencia}"
+        return f"Sacarificação/Fermentação em {self.data.date()} - Etanol: {self.etanol_final:.1f} g/L"
+
+
+class CurvaSacFerm(models.Model):
+    processo_sacferm = models.ForeignKey(
+        ProcessoSacarificacaoFermentacao,
+        on_delete=models.CASCADE,
+        related_name='curva_dados'
+    )
+    
+    conc_art = models.FloatField(null=True, help_text="Concentração de ART (g/L)")
+    conc_oligos = models.FloatField(null=True, blank=True, help_text="Concentração de oligossacarídeos (g/L)")
+    conc_etanol = models.FloatField(help_text="Concentração de etanol (g/L)")
+    conc_biomassa = models.FloatField(help_text="Concentração de biomassa celular (g/L)")
+    
+    tempo_h = models.FloatField(help_text="Tempo (h)")
+
+
+    def __str__(self):
+        return f"{self.tempo}h: Etanol {self.etanol:.1f} g/L"
+
+
 
 class CalculoART(models.Model):
     quantidade_milho = models.FloatField(null=True)
