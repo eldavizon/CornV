@@ -13,11 +13,13 @@ from plotly.graph_objs import Scatter, Layout, Figure
 import plotly.graph_objects as go
 
 #View de processo
-from .modelos.moagem import calcular_moagem
-from .modelos.liquefacao import simular_liquefacao  # ajuste o caminho conforme sua estrutura
+  # ajuste o caminho conforme sua estrutura
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from django.core.serializers.json import DjangoJSONEncoder
+
+from .utils import serializar_simulacoes,gerar_grafico_curva,processar_formulario_processo
+
 
 
 # Create your views here.
@@ -30,228 +32,36 @@ def index(request):
 # está configurado nas settings > login_url.
 @login_required(login_url='user-login')
 def processo(request):
-    # Recupera todos os processos de moagem ordenados da data mais recente para a mais antiga
     dados_moagem = ProcessoMoagem.objects.all().order_by("-data")
-    
-    # Recupera todos os dados de liquefação
     dados_liquefacao = ProcessoLiquefacao.objects.all()
-
-    # Pega as últimas 10 simulações que já possuem dados de liquefação associados
     ultimas_simulacoes = ProcessoMoagem.objects.filter(liquefacao__isnull=False).order_by("-data")[:10]
+    simulacoes_json = serializar_simulacoes(ultimas_simulacoes)
 
-    # Serializa as últimas simulações para enviar ao JavaScript (por exemplo, para exibição em gráficos interativos)
-    simulacoes_json = json.dumps([
-        {
-            "id": p.id,
-            "data": p.data.strftime('%Y-%m-%d') if p.data else None,
-            "milho": p.quantidade_milho,
-            "milho_moido": p.milho_moido,
-            "energia": p.energia_total,
-            "liquefacao": {
-                "amido": p.liquefacao.amido_convertido,
-                "conversao_amido": p.liquefacao.conversao_amido,
-                "tempo": p.liquefacao.tempo_liquefacao,
-                "volume": p.liquefacao.volume_reacao_L,
-                "conc_amido": p.liquefacao.conc_amido_final,
-                "art": p.liquefacao.art_gerada,
-                "oligossacarideos": p.liquefacao.massa_oligossacarideos,
-                "percentual": p.liquefacao.conversao_amido,
-                "enzima": p.liquefacao.enzima_usada,
-                "volume_total_L": p.liquefacao.volume_total_L,
-                "volume_milho_L": p.liquefacao.volume_milho_L,
-                "volume_agua_adicionado_L": p.liquefacao.volume_agua_adicionado_L,
-                "grafico": [
-                    {
-                        "tempo": d.tempo_h,
-                        "conc": d.concentracao_amido,
-                        "art": d.art,
-                        "oligos": d.oligos
-                    } for d in p.liquefacao.curva_dados.all()
-                ]
-            } if hasattr(p, 'liquefacao') else None
-        }
-        for p in ultimas_simulacoes
-    ], cls=DjangoJSONEncoder)
-
-    # Inicializa variáveis de controle
     grafico_liquefacao_json = None
     simulacao_selecionada = None
 
-    # ⚠️ Caso o usuário tenha clicado para visualizar uma simulação anterior
     simulacao_id = request.GET.get("simulacao_id")
     if simulacao_id:
         simulacao_selecionada = get_object_or_404(ProcessoMoagem, pk=simulacao_id)
-
-        # Se a simulação tiver dados de liquefação, gera o gráfico Plotly da curva de concentração
         if simulacao_selecionada.liquefacao:
-            curva_dados = CurvaLiquefacao.objects.filter(processo_liquefacao=simulacao_selecionada.liquefacao)
-            tempos = [d.tempo_h for d in curva_dados]
-            concentracoes = [d.concentracao_amido for d in curva_dados]
+            curva_dados = simulacao_selecionada.liquefacao.curva_dados.all()
+            grafico_liquefacao_json = gerar_grafico_curva(curva_dados)
 
-            fig = Figure(
-                data=[Scatter(
-                    x=tempos,
-                    y=concentracoes,
-                    mode='lines+markers',
-                    name='Amido (g/L)',
-                    line=dict(color='orange', width=2),
-                    fill='tozeroy',
-                    fillcolor='rgba(255,165,0,0.2)'
-                )],
-                layout=Layout(
-                    title='Cinética da Liquefação Enzimática',
-                    xaxis=dict(title='Tempo (h)'),
-                    yaxis=dict(title='Concentração de Amido (g/L)'),
-                    height=400
-                )
-            )
-
-            # Serializa o gráfico para o front-end
-            grafico_liquefacao_json = json.dumps(fig, cls=PlotlyJSONEncoder)
-
-    # Se o formulário foi enviado (POST)
     if request.method == "POST":
         form = ProcessoMoagemForm(request.POST)
+        processo_instancia, liquefacao_instancia, erro = processar_formulario_processo(request, form)
 
-        if form.is_valid():
-            # Cria instância do formulário sem salvar ainda no banco
-            form_instance = form.save(commit=False)
+        if erro:
+            messages.error(request, f"Erro: {erro}")
+            return redirect('simulador-processo')
 
-            # Extrai quantidade de milho informada
-            quantidade = float(form.cleaned_data["quantidade_milho"])
-
-            # Calcula moagem com base nessa quantidade
-            resultado = calcular_moagem(quantidade)
-
-            # Preenche os campos de moagem
-            form_instance.milho_moido = resultado["massa_moida"]
-            form_instance.energia_total = resultado["energia_total_kWh"]
-            form_instance.save()  # Agora salva no banco
-
-            # Extrai dados para simulação de liquefação
-            modo = form.cleaned_data.get("modo")
-            enzima_g = form.cleaned_data.get("enzima_g")
-            tempo_h = 12
-            concentracao_desejada = 200
-
-
-            # Chama a função de simulação da liquefação
-            resultado_liquefacao = simular_liquefacao(
-                massa_milho_kg=form_instance.milho_moido,
-                enzima_g=enzima_g,
-                tempo_h=tempo_h,
-                concentracao_desejada_g_L=concentracao_desejada
-            )
-
-            # Se houve erro na simulação, exibe mensagem e redireciona
-            if resultado_liquefacao.get("erro"):
-                messages.error(request, f"Erro na liquefação: {resultado_liquefacao['erro']}")
-                return redirect('simulador-processo')
-
-            # Fator de hidratação para estimar volume de reação
-            fator_hidratacao = 1.11
-
-            # Cria instância de ProcessoLiquefacao vinculada ao processo de moagem atual
-            liquefacao = ProcessoLiquefacao.objects.create(
-                processo=form_instance,
-                amido_convertido=resultado_liquefacao["massa_art_g"] / 1000,
-                conversao_amido=resultado_liquefacao["conversao_percentual"],
-                tempo_liquefacao=resultado_liquefacao["tempo_h"],
-                volume_reacao_L=form_instance.milho_moido / 1.05,
-                conc_amido_inicial=resultado_liquefacao["concentracao_amido_inicial"] / 1000,
-                conc_amido_final=resultado_liquefacao["concentracao_amido_final"] / 1000,
-                massa_oligossacarideos=resultado_liquefacao["massa_oligossacarideos_g"] / 1000,
-                art_gerada=resultado_liquefacao["massa_art_g"] / 1000,
-                enzima_usada=enzima_g if enzima_g else resultado_liquefacao["enzima_g"],
-                volume_total_L=resultado_liquefacao["volume_total_L"],
-                volume_milho_L=resultado_liquefacao["volume_milho_L"],
-                volume_agua_adicionado_L=resultado_liquefacao["volume_agua_adicionado_L"],
-            )
-
-
-            # Cria a curva de dados ponto a ponto no banco
-            # Cria a curva de dados ponto a ponto no banco
-            for tempo, conc, art, oligos in zip(
-                resultado_liquefacao["dados_t"],
-                resultado_liquefacao["dados_S"],
-                resultado_liquefacao["dados_ART"],
-                resultado_liquefacao["dados_oligos"]):
-                
-                CurvaLiquefacao.objects.create(
-                    processo_liquefacao=liquefacao,
-                    tempo_h=tempo,
-                    concentracao_amido=conc,
-                    art=art,
-                    oligos=oligos,
-                    produto_gerado=art + oligos  # opcional
-                )
-
-
-            curva_dados = CurvaLiquefacao.objects.filter(processo_liquefacao=liquefacao)
-            tempos = [d.tempo_h for d in curva_dados]
-            concentracoes = [d.concentracao_amido for d in curva_dados]
-            arts = [d.art for d in curva_dados]
-            oligos = [d.oligos for d in curva_dados]
-
-            fig = Figure(
-                data=[
-                    Scatter(
-                        x=tempos,
-                        y=concentracoes,
-                        mode='lines+markers',
-                        name='Amido (g/L)',
-                        line=dict(color='orange', width=2),
-                        fill='tozeroy',
-                        fillcolor='rgba(255,165,0,0.2)'
-                    ),
-                    Scatter(
-                        x=tempos,
-                        y=arts,
-                        mode='lines+markers',
-                        name='ART (g)',
-                        line=dict(color='green', width=2),
-                        yaxis='y2'
-                    ),
-                    Scatter(
-                        x=tempos,
-                        y=oligos,
-                        mode='lines+markers',
-                        name='Oligossacarídeos (g)',
-                        line=dict(color='blue', width=2, dash='dash'),
-                        yaxis='y2'
-                    ),
-                ],
-                layout=Layout(
-                    title='Cinética da Liquefação Enzimática',
-                    xaxis=dict(title='Tempo (h)'),
-                    yaxis=dict(title='Concentração de Amido (g/L)'),
-                    yaxis2=dict(
-                        title='Produto acumulado (g)',
-                        overlaying='y',
-                        side='right'
-                    ),
-                    height=450
-                )
-            )
-
-
-
-            grafico_liquefacao_json = json.dumps(fig, cls=PlotlyJSONEncoder)
-
-            # Mensagem de sucesso para o usuário
-            messages.success(request, f'{quantidade} kg de milho foram moídos e liquefeitos.')
-
-            # Redireciona para a mesma página, mas passando o ID da nova simulação via GET
-            return redirect(f"{request.path}?simulacao_id={form_instance.id}")
-        
-        else:
-            print("🔴 Formulário de processo inválido")
-
+        curva_dados = liquefacao_instancia.curva_dados.all()
+        grafico_liquefacao_json = gerar_grafico_curva(curva_dados, incluir_art=True)
+        messages.success(request, f'{processo_instancia.quantidade_milho} kg de milho foram moídos e liquefeitos.')
+        return redirect(f"{request.path}?simulacao_id={processo_instancia.id}")
     else:
-        # Se não for POST, apenas inicializa o formulário vazio
         form = ProcessoMoagemForm()
-    
-    # Dados para enviar ao template HTML
+
     context = {
         'dados_moagem': dados_moagem,
         'dados_liquefacao': dados_liquefacao,
@@ -262,10 +72,7 @@ def processo(request):
         'simulacoes_json': simulacoes_json,
     }
 
-    # Renderiza a página
     return render(request, 'simulador/processo.html', context)
-
-
 
 from django.db.models import Q
 

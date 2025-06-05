@@ -59,7 +59,7 @@ def simular_liquefacao(
     lista_ART = [0]
     lista_oligos = [0]
 
-    epsilon = 1e-6
+    epsilon = 1e-1
     Vmax_ajustado = atividade_aparente(Vmax_std * enzima_g, T_operacao, pH_operacao)
 
     Ki = 50
