@@ -104,6 +104,7 @@
                         <h5><strong>Volume da reação:</strong> <span id="volume">0</span> L</h5>
                         <h5><strong>Conc. amido final:</strong> <span id="conc-amido">0</span> kg/L</h5>
                         <h5><strong>ART gerada:</strong> <span id="art">0</span> kg</h5>
+                        <h5><strong>Oligossacarideos gerados:</strong> <span id="oligossacarideos">0</span> kg</h5>
                         <h5><strong>Conversão percentual:</strong> <span id="percentual">0</span>%</h5>
                         <h5><strong>Enzima:</strong> <span id="enzima">0</span> g</h5>
                         <h5><strong>Volume total:</strong> <span id="volume-total">0</span> L</h5>
@@ -301,6 +302,8 @@
             document.getElementById("volume").textContent = parseFloat(l.volume).toFixed(3);
             document.getElementById("conc-amido").textContent = parseFloat(l.conc_amido).toFixed(4);
             document.getElementById("art").textContent = parseFloat(l.art).toFixed(4);
+            document.getElementById("oligossacarideos").textContent = parseFloat(l.oligossacarideos).toFixed(4);
+
             document.getElementById("percentual").textContent = parseFloat(l.percentual).toFixed(2);
             document.getElementById("enzima").textContent = parseFloat(l.enzima).toFixed(4);
             

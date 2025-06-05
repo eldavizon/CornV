@@ -57,6 +57,7 @@ def processo(request):
                 "volume": p.liquefacao.volume_reacao_L,
                 "conc_amido": p.liquefacao.conc_amido_final,
                 "art": p.liquefacao.art_gerada,
+                "oligossacarideos": p.liquefacao.massa_oligossacarideos,
                 "percentual": p.liquefacao.conversao_amido,
                 "enzima": p.liquefacao.enzima_usada,
                 "volume_total_L": p.liquefacao.volume_total_L,
