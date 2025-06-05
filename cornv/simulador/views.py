@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import HistoricoPrecoEtanol, HistoricoPrecoMilho, CalculoART, ProcessoMoagem, ProcessoLiquefacao, CurvaLiquefacao
+from .models import HistoricoPrecoEtanol, HistoricoPrecoMilho, CalculoART
 from .forms import CalculoARTForm, ProcessoMoagemForm
 from django.contrib import messages
 
@@ -18,9 +18,14 @@ from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from django.core.serializers.json import DjangoJSONEncoder
 
+from .models import ProcessoMoagem, ProcessoLiquefacao, CurvaLiquefacao
+
+
 from .utils import serializar_simulacoes,gerar_grafico_curva,processar_formulario_processo
 
-
+from .models import ProcessoSacarificacaoFermentacao, CurvaSacFerm
+from .modelos.sacferm import simular_etanol
+from .utils import gerar_grafico_sacferm
 
 # Create your views here.
 
@@ -55,10 +60,75 @@ def processo(request):
             messages.error(request, f"Erro: {erro}")
             return redirect('simulador-processo')
 
-        curva_dados = liquefacao_instancia.curva_dados.all()
-        grafico_liquefacao_json = gerar_grafico_curva(curva_dados, incluir_art=True)
-        messages.success(request, f'{processo_instancia.quantidade_milho} kg de milho foram moídos e liquefeitos.')
+        # —————— PARTE NOVA: usar valores de liquefação como entrada para sac/ferm ——————
+
+        # 1) obter massa de oligossacarídeos (kg), art gerada (kg) e volume total (L)
+        massa_oligos_kg = liquefacao_instancia.massa_oligossacarideos or 0.0
+        art_gerada_kg = liquefacao_instancia.art_gerada or 0.0
+        volume_L = liquefacao_instancia.volume_total_L or 1.0  # evitar divisão por zero
+
+        # 2) converter para concentração em g/L
+        #    (1 kg = 1000 g)
+        conc_oligos_inicial = (massa_oligos_kg * 1000.0) / volume_L
+        conc_glicose_inicial = (art_gerada_kg * 1000.0) / volume_L
+
+        # 3) CHAMADA da função simular_etanol
+        resultado = simular_etanol(
+            concentracao_oligossacarideos_inicial=conc_oligos_inicial,
+            concentracao_glicose_inicial=conc_glicose_inicial,
+            concentracao_biomassa_inicial=0.1,   # mantém valor padrão; se quiser parametrizar, adicione no form
+            tempo_simulacao_h=72,
+            passo_temporal_h=0.1,
+            Vmax_sacarificacao=2.5,
+            Km_sacarificacao=50.0,
+            Ki_etanol_sacarificacao=80.0,
+            mu_max_fermentacao=0.4,
+            Ks_fermentacao=0.5,
+            Yxs_fermentacao=0.05,
+            Yps_fermentacao=0.45,
+            Kp_etanol_fermentacao=95.0
+        )
+
+        # 4) criar instância de ProcessoSacarificacaoFermentacao
+        sacferm = ProcessoSacarificacaoFermentacao.objects.create(
+            processo_liquefacao=liquefacao_instancia,
+            art_inicial=conc_glicose_inicial,
+            oligossacarideos_inicial=conc_oligos_inicial,
+            etanol_final=resultado["concentracao_etanol_final"],
+            biomassa_final=resultado["concentracao_biomassa_final"]
+        )
+
+        # 5) gravar curva temporal em CurvaSacFerm
+        lista_tempo = resultado["tempo_h"]
+        lista_O = resultado["oligossacarideos_g_L"]
+        lista_G = resultado["glicose_g_L"]
+        lista_X = resultado["biomassa_g_L"]
+        lista_E = resultado["etanol_g_L"]
+
+        curva_objs = []
+        for t, O, G, X, E in zip(lista_tempo, lista_O, lista_G, lista_X, lista_E):
+            curva_objs.append(
+                CurvaSacFerm(
+                    processo_sacferm=sacferm,
+                    conc_art=G,
+                    conc_oligos=O,
+                    conc_etanol=E,
+                    conc_biomassa=X,
+                    tempo_h=t
+                )
+            )
+        CurvaSacFerm.objects.bulk_create(curva_objs)
+
+        # 6) refazer gráfico incluindo ART (atualizado) e exibir sac/ferm
+        grafico_sacferm_json = gerar_grafico_sacferm(sacferm.curva_dados.all())
+
+        messages.success(
+            request, 
+            f'{processo_instancia.quantidade_milho} kg de milho foram moídos, '
+            'liquefeitos e agora simulados sacarificação/fermentação.'
+        )
         return redirect(f"{request.path}?simulacao_id={processo_instancia.id}")
+
     else:
         form = ProcessoMoagemForm()
 
@@ -74,7 +144,7 @@ def processo(request):
 
     return render(request, 'simulador/processo.html', context)
 
-from django.db.models import Q
+
 
 @login_required(login_url='user-login')
 def calcular_rendimento(request):

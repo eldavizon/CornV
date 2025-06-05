@@ -99,10 +99,8 @@ class CurvaSacFerm(models.Model):
     
     tempo_h = models.FloatField(help_text="Tempo (h)")
 
-
     def __str__(self):
-        return f"{self.tempo}h: Etanol {self.etanol:.1f} g/L"
-
+        return f"{self.tempo_h}h: Etanol {self.conc_etanol:.1f} g/L"
 
 
 class CalculoART(models.Model):

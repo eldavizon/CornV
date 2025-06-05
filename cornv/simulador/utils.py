@@ -163,3 +163,21 @@ def processar_formulario_processo(request, form):
         )
 
     return instance, liquefacao, None
+
+
+def gerar_grafico_sacferm(curva_dados):
+    """
+    Gera JSON para gráfico de sacarificação e fermentação.
+    Mostra glicose e etanol ao longo do tempo.
+    """
+    tempos = [d.tempo_h for d in curva_dados]
+    glicose = [d.conc_art for d in curva_dados]
+    etanol = [d.conc_etanol for d in curva_dados]
+
+    dados = {
+        "tempos": tempos,
+        "glicose_gL": glicose,
+        "etanol_gL": etanol,
+    }
+
+    return json.dumps(dados, cls=DjangoJSONEncoder)
