@@ -321,7 +321,7 @@
                 y: l.grafico.map(p => parseFloat(p.art).toFixed(4)),
                 type: 'scatter',
                 mode: 'lines+markers',
-                name: 'ART (g)',
+                name: 'ART (g/L)',
                 line: { color: 'green', width: 2 }
             };
 
@@ -330,7 +330,7 @@
                 y: l.grafico.map(p => parseFloat(p.oligos).toFixed(4)),
                 type: 'scatter',
                 mode: 'lines+markers',
-                name: 'Oligossacarídeos (g)',
+                name: 'Oligo. (g/L)',
                 line: { color: 'blue', dash: 'dot', width: 2 }
             };
 
@@ -346,7 +346,7 @@
                     mirror: true, zeroline: false
                 },
                 yaxis: {
-                    title: { text: 'Massa (g)', font: { size: 14, color: '#333' } },
+                    title: { text: 'Concentração (g/L)', font: { size: 14, color: '#333' } },
                     showline: true, linewidth: 2, linecolor: '#ccc',
                     mirror: true, zeroline: false
                 },

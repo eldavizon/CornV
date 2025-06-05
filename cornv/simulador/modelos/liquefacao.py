@@ -79,12 +79,17 @@ def simular_liquefacao(
         massa_art_g_t = produto_g * fracao_fermentescivel * fator_estequiometrico_amido_para_ART
         massa_oligo_g_t = produto_g * (1 - fracao_fermentescivel)
 
+        # Converter para concentrações (g/L)
+        conc_art_g_L = massa_art_g_t / volume_L
+        conc_oligo_g_L = massa_oligo_g_t / volume_L
+        conc_produto_g_L = produto_g / volume_L
+
         # Armazenar nos arrays
         lista_t.append(t)
         lista_S.append(S)
-        lista_P.append(produto_g)
-        lista_ART.append(massa_art_g_t)
-        lista_oligos.append(massa_oligo_g_t)
+        lista_P.append(conc_produto_g_L)
+        lista_ART.append(conc_art_g_L)
+        lista_oligos.append(conc_oligo_g_L)
 
         if S <= epsilon:
             S = 0

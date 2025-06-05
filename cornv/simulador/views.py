@@ -20,9 +20,6 @@ from django.shortcuts import get_object_or_404
 from django.core.serializers.json import DjangoJSONEncoder
 
 
-
-
-
 # Create your views here.
 
 @login_required(login_url='user-login', ) # está configurado nas settings > login_url.
