@@ -1,4 +1,5 @@
 def simular_etanol(
+    concentracao_art_inicial: float = 40.0,
     concentracao_oligossacarideos_inicial: float = 120.0,
     concentracao_biomassa_inicial: float = 0.1,
     tempo_simulacao_h: float = 72,
@@ -12,126 +13,81 @@ def simular_etanol(
     Yps_fermentacao: float = 0.45,
     Kp_etanol_fermentacao: float = 95.0
 ) -> dict:
-    """
-    Simula o processo combinado de sacarificação e fermentação para produção de etanol
-    
-    Args:
-        concentracao_oligossacarideos_inicial: Concentração inicial de oligossacarídeos (g/L)
-        concentracao_biomassa_inicial: Concentração inicial de biomassa (g/L)
-        tempo_simulacao_h: Tempo total de simulação (horas)
-        passo_temporal_h: Passo de tempo para integração (horas)
-        ... (demais parâmetros cinéticos)
-    
-    Returns:
-        Dicionário com resultados da simulação no formato:
-        {
-            "tempo_h": lista_tempo,
-            "oligossacarideos_g_L": lista_oligossacarideos,
-            "glicose_g_L": lista_glicose,
-            "biomassa_g_L": lista_biomassa,
-            "etanol_g_L": lista_etanol,
-            "concentracao_etanol_final": valor_etanol_final,
-            "conversao_percentual": valor_conversao,
-            ... (demais métricas)
-        }
-    """
-    # Parâmetros do processo
-    params_sacarificacao = {
-        'Vmax': Vmax_sacarificacao,
-        'Km': Km_sacarificacao,
-        'Ki_etanol': Ki_etanol_sacarificacao
-    }
+    def calcular_sacarificacao(O, E):
+        return (Vmax_sacarificacao * O) / (Km_sacarificacao + O + 1e-8) * (1 / (1 + E / (Ki_etanol_sacarificacao + 1e-8)))
 
-    params_fermentacao = {
-        'mu_max': mu_max_fermentacao,
-        'Ks': Ks_fermentacao,
-        'Yxs': Yxs_fermentacao,
-        'Yps': Yps_fermentacao,
-        'Kp_etanol': Kp_etanol_fermentacao
-    }
+    def calcular_fermentacao(ART, G, X, E):
+        substrato_total = ART + G
+        substrato_total = max(substrato_total, 1e-8)
+        mu = mu_max_fermentacao * (substrato_total / (Ks_fermentacao + substrato_total)) * max(0, 1 - E / Kp_etanol_fermentacao)
+        frac_ART = ART / substrato_total
+        frac_G = G / substrato_total
+        dART_cons = frac_ART * (mu / Yxs_fermentacao) * X
+        dG_cons = frac_G * (mu / Yxs_fermentacao) * X
+        dE_prod = Yps_fermentacao * (dART_cons + dG_cons)
+        return mu, dART_cons, dG_cons, dE_prod
 
-    # Funções auxiliares (manter as mesmas)
-    def calcular_sacarificacao(O, E, params):
-        Vmax = params['Vmax']
-        Km = params['Km']
-        Ki_etanol = params['Ki_etanol']
-        v_sac = (Vmax * O) / (Km + O) * (1 / (1 + E/Ki_etanol))
-        return v_sac
-
-    def calcular_fermentacao(G, X, E, params):
-        mu_max = params['mu_max']
-        Ks = params['Ks']
-        Yxs = params['Yxs']
-        Yps = params['Yps']
-        Kp_etanol = params['Kp_etanol']
-        
-        mu = mu_max * (G / (Ks + G)) * max(0, (1 - E/Kp_etanol))
-        dG_cons = (mu / Yxs) * X
-        dE_prod = Yps * dG_cons
-        return mu, dG_cons, dE_prod
-
-    # Condições iniciais
     estado = {
+        'ART': concentracao_art_inicial,
         'O': concentracao_oligossacarideos_inicial,
         'G': 0.0,
         'X': concentracao_biomassa_inicial,
         'E': 0.0
     }
 
-    # Listas para armazenar resultados
     lista_tempo = [0]
+    lista_art = [estado['ART']]
     lista_oligossacarideos = [estado['O']]
     lista_glicose = [estado['G']]
     lista_biomassa = [estado['X']]
     lista_etanol = [estado['E']]
 
-    # Simulação com Euler Explícito
-    t = 0
+    t = 0.0
     while t < tempo_simulacao_h:
-        # Calcular taxas
-        v_sac = calcular_sacarificacao(estado['O'], estado['E'], params_sacarificacao)
-        mu, dG_cons, dE_prod = calcular_fermentacao(estado['G'], estado['X'], estado['E'], params_fermentacao)
-        
-        # Calcular derivadas
+        v_sac = calcular_sacarificacao(estado['O'], estado['E'])
+        mu, dART_cons, dG_cons, dE_prod = calcular_fermentacao(
+            estado['ART'], estado['G'], estado['X'], estado['E']
+        )
+
+        dART_dt = -dART_cons
         dO_dt = -v_sac
         dG_dt = v_sac - dG_cons
         dX_dt = mu * estado['X']
         dE_dt = dE_prod
-        
-        # Atualizar estado
-        estado['O'] = max(estado['O'] + dO_dt * passo_temporal_h, 0)
-        estado['G'] = max(estado['G'] + dG_dt * passo_temporal_h, 0)
-        estado['X'] = max(estado['X'] + dX_dt * passo_temporal_h, 0)
-        estado['E'] = estado['E'] + dE_dt * passo_temporal_h
-        
-        # Avançar no tempo e registrar
+
+        estado['ART'] = max(estado['ART'] + dART_dt * passo_temporal_h, 0.0)
+        estado['O'] = max(estado['O'] + dO_dt * passo_temporal_h, 0.0)
+        estado['G'] = max(estado['G'] + dG_dt * passo_temporal_h, 0.0)
+        estado['X'] = max(estado['X'] + dX_dt * passo_temporal_h, 0.0)
+        estado['E'] += dE_dt * passo_temporal_h
+
         t += passo_temporal_h
         lista_tempo.append(t)
+        lista_art.append(estado['ART'])
         lista_oligossacarideos.append(estado['O'])
         lista_glicose.append(estado['G'])
         lista_biomassa.append(estado['X'])
         lista_etanol.append(estado['E'])
-        
-        # Critério de parada
-        if estado['O'] <= 1e-3 and estado['G'] <= 1e-3:
+
+        if estado['ART'] <= 1e-3 and estado['O'] <= 1e-3 and estado['G'] <= 1e-3:
             break
 
-    # Cálculo de métricas finais
-    conversao_percentual = ((concentracao_oligossacarideos_inicial - estado['O']) / 
-                          concentracao_oligossacarideos_inicial) * 100
+    substrato_total_inicial = concentracao_art_inicial + concentracao_oligossacarideos_inicial
+    substrato_total_consumido = (concentracao_art_inicial - estado['ART'] +
+                                 concentracao_oligossacarideos_inicial - estado['O'])
+    conversao_percentual = (substrato_total_consumido / substrato_total_inicial) * 100
+    rendimento_etanol = (estado['E'] / substrato_total_inicial) * 100
 
     return {
         "tempo_h": lista_tempo,
+        "art_g_L": lista_art,
         "oligossacarideos_g_L": lista_oligossacarideos,
         "glicose_g_L": lista_glicose,
         "biomassa_g_L": lista_biomassa,
         "etanol_g_L": lista_etanol,
         "concentracao_etanol_final": estado['E'],
         "conversao_percentual": conversao_percentual,
-        "concentracao_oligossacarideos_inicial": concentracao_oligossacarideos_inicial,
-        "concentracao_oligossacarideos_final": estado['O'],
-        "concentracao_biomassa_final": estado['X'],
-        "tempo_simulacao_h": t,
-        "parametros_sacarificacao": params_sacarificacao,
-        "parametros_fermentacao": params_fermentacao
+        "rendimento_etanol_percentual": rendimento_etanol,
+        "biomassa_final": estado['X'],
+        "tempo_processo_h": t
     }
