@@ -1,8 +1,10 @@
+from typing import Literal, Optional
+
 def simular_etanol(
-    concentracao_art_inicial: float = 40.0,
-    concentracao_oligossacarideos_inicial: float = 120.0,
-    concentracao_biomassa_inicial: float = 0.1,
-    tempo_simulacao_h: float = 72,
+    concentracao_art_inicial: float,
+    concentracao_oligossacarideos_inicial: float,
+    concentracao_biomassa_inicial: float,
+    tempo_simulacao_h: float = 50,
     passo_temporal_h: float = 0.1,
     Vmax_sacarificacao: float = 2.5,
     Km_sacarificacao: float = 50.0,
