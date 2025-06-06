@@ -18,7 +18,6 @@ from .modelos.liquefacao import simular_liquefacao
 from .modelos.sacferm import simular_etanol
 from .models import ProcessoSacarificacaoFermentacao, CurvaSacFerm
 
-
 def serializar_simulacoes(ultimas_simulacoes):
     return json.dumps([
         {
@@ -48,11 +47,27 @@ def serializar_simulacoes(ultimas_simulacoes):
                         "oligos": d.oligos
                     } for d in p.liquefacao.curva_dados.all()
                 ]
-            } if hasattr(p, 'liquefacao') else None
+            } if hasattr(p, 'liquefacao') else None,
+            "sacarificacao": (
+                lambda sac: {
+                    "art_inicial": sac.art_inicial,
+                    "oligossacarideos_inicial": sac.oligossacarideos_inicial,
+                    "etanol_final": sac.etanol_final,
+                    "biomassa_final": sac.biomassa_final,
+                    "grafico": [
+                        {
+                            "tempo": d.tempo_h,
+                            "art": d.conc_art,
+                            "oligos": d.conc_oligos,
+                            "etanol": d.conc_etanol,
+                            "biomassa": d.conc_biomassa
+                        } for d in sac.curva_dados.all()
+                    ]
+                } if sac else None
+            )(p.liquefacao.sacarificacoes.first() if hasattr(p, 'liquefacao') else None)
         }
         for p in ultimas_simulacoes
     ], cls=DjangoJSONEncoder)
-
 
 
 def gerar_grafico_curva(curva_dados, incluir_art=False):
@@ -204,5 +219,34 @@ def processar_formulario_processo(request, form):
         )
 
     return instance, liquefacao, sacferm, None
+
+
+#  ================================        sacarificação
+
+
+def gerar_grafico_sacarificacao(curva_dados, incluir_art=False):
+    tempos = [d.tempo_h for d in curva_dados]
+    concentracoes = [d.conc_etanol for d in curva_dados]
+
+    data = [Scatter(
+        x=tempos,
+        y=concentracoes,
+        mode='lines+markers',
+        name='Etanol (g/L)',
+        line=dict(color='green', width=2),
+        fill='tozeroy',
+        fillcolor='rgba(255,165,0,0.2)'
+    )]
+
+    layout = Layout(
+        title='Cinética da Liquefação Enzimática',
+        xaxis=dict(title='Tempo (h)'),
+        yaxis=dict(title='Concentração de Amido (g/L)'),
+        height=450
+    )
+
+    fig = Figure(data=data, layout=layout)
+    return json.dumps(fig, cls=PlotlyJSONEncoder)
+
 
 #fim
