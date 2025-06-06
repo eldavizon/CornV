@@ -26,7 +26,7 @@ class ProcessoMoagem(models.Model):
     data = models.DateTimeField(auto_now_add=True, null=True)
 
     def __str__(self):
-        return f"{self.quantidade_milho} kg - {self.milho_moido} moido - {self.data} - eficiencia: {self.eficiencia}"
+        return f"{self.quantidade_milho} kg - {self.milho_moido} moido - {self.data}"
 
 class ProcessoLiquefacao(models.Model):
     processo = models.OneToOneField('ProcessoMoagem', on_delete=models.CASCADE, related_name='liquefacao')

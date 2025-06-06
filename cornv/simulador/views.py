@@ -20,6 +20,9 @@ from django.core.serializers.json import DjangoJSONEncoder
 
 from .utils import serializar_simulacoes,gerar_grafico_curva,processar_formulario_processo
 
+#SACARIFICAÇÃO
+from .utils import gerar_grafico_sacarificacao
+
 
 
 # Create your views here.
@@ -29,52 +32,76 @@ def index(request):
     return render(request, 'simulador/index.html')
 
 
-# está configurado nas settings > login_url.
 @login_required(login_url='user-login')
 def processo(request):
+    # Consultas iniciais
     dados_moagem = ProcessoMoagem.objects.all().order_by("-data")
     dados_liquefacao = ProcessoLiquefacao.objects.all()
     ultimas_simulacoes = ProcessoMoagem.objects.filter(liquefacao__isnull=False).order_by("-data")[:10]
     simulacoes_json = serializar_simulacoes(ultimas_simulacoes)
 
+    # Variáveis para gráficos e seleção
     grafico_liquefacao_json = None
+    grafico_sacarificacao_json = None
     simulacao_selecionada = None
+    sacarificacao = None
 
+    # Lógica para simulação selecionada (GET)
     simulacao_id = request.GET.get("simulacao_id")
     if simulacao_id:
         simulacao_selecionada = get_object_or_404(ProcessoMoagem, pk=simulacao_id)
+        
         if simulacao_selecionada.liquefacao:
-            curva_dados = simulacao_selecionada.liquefacao.curva_dados.all()
-            grafico_liquefacao_json = gerar_grafico_curva(curva_dados)
+            # Gráfico da liquefação
+            curva_dados_liq = simulacao_selecionada.liquefacao.curva_dados.all()
+            grafico_liquefacao_json = gerar_grafico_curva(curva_dados_liq)
 
+            # Gráfico de sacarificação (se existir)
+            sacarificacao = simulacao_selecionada.liquefacao.sacarificacoes.first()
+            if sacarificacao:
+                curva_dados_sac = sacarificacao.curva_dados.all()
+                grafico_sacarificacao_json = gerar_grafico_sacarificacao(curva_dados_sac)
+
+    # Lógica para novo processo (POST)
     if request.method == "POST":
         form = ProcessoMoagemForm(request.POST)
-        processo_instancia, liquefacao_instancia, erro = processar_formulario_processo(request, form)
+        processo_instancia, liquefacao_instancia, sacferm_instancia, erro = processar_formulario_processo(request, form)
 
         if erro:
             messages.error(request, f"Erro: {erro}")
             return redirect('simulador-processo')
 
-        curva_dados = liquefacao_instancia.curva_dados.all()
-        grafico_liquefacao_json = gerar_grafico_curva(curva_dados, incluir_art=True)
-        messages.success(request, f'{processo_instancia.quantidade_milho} kg de milho foram moídos e liquefeitos.')
+        # Gera gráfico de liquefação
+        curva_dados_liq = liquefacao_instancia.curva_dados.all()
+        grafico_liquefacao_json = gerar_grafico_curva(curva_dados_liq, incluir_art=True)
+
+        # Gera gráfico de sacarificação (se existir)
+        if sacferm_instancia:
+            curva_dados_sac = sacferm_instancia.curva_dados.all()
+            grafico_sacarificacao_json = gerar_grafico_sacarificacao(curva_dados_sac)
+            messages.success(request, 'Processo completo: moagem, liquefação e fermentação concluídas!')
+        else:
+            messages.success(request, f'{processo_instancia.quantidade_milho} kg de milho foram moídos e liquefeitos.')
+
         return redirect(f"{request.path}?simulacao_id={processo_instancia.id}")
     else:
         form = ProcessoMoagemForm()
 
+    # Contexto para o template
     context = {
         'dados_moagem': dados_moagem,
         'dados_liquefacao': dados_liquefacao,
         'form': form,
         'grafico_liquefacao': grafico_liquefacao_json,
+        'grafico_sacarificacao': grafico_sacarificacao_json,
         'ultimas_simulacoes': ultimas_simulacoes,
         'simulacao_selecionada': simulacao_selecionada,
         'simulacoes_json': simulacoes_json,
+        'sacarificacao': sacarificacao,
     }
 
     return render(request, 'simulador/processo.html', context)
 
-from django.db.models import Q
 
 @login_required(login_url='user-login')
 def calcular_rendimento(request):

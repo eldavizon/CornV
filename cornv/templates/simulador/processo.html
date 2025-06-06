@@ -125,11 +125,10 @@
                 </div>
                 <div class="card-body">
                     <div class="d-flex flex-column gap-2">
-                        <h5><strong>Polissacarídeos:</strong> <span id="polissacarideos">0</span> kg</h5>
-                        <h5><strong>Monossacarídeos:</strong> <span id="monossacarideos">0</span> kg</h5>
-                        <h5><strong>Tempo:</strong> <span id="tempo-sacarificacao">0</span> h</h5>
-                        <h5><strong>Enzima utilizada:</strong> <span id="enzima-sacarificacao">0</span> g</h5>
-                        <h5><strong>Conversão:</strong> <span id="conversao-sacarificacao">0</span>%</h5>
+                        <h5><strong>ART Inicial:</strong> <span id="art-inicial"></span> g/L</span> kg</h5>
+                        <h5><strong>Oligossacarídeos Iniciais: </strong><span id="oligossacarideos-inicial"></span> g/L</h5>
+                        <h5><strong>Etanol Final: </strong> <span id="etanol-final"></span> g/L</h5>
+                        <h5><strong>Biomassa Final:</strong> <span id="biomassa-final"></span> g/L</span> g</h5>
                     </div>
                 </div>
             </div>
@@ -234,6 +233,20 @@
                 </div>
                 <div class="card-body">
                     <div id="grafico-sacarificacao" style="width: 100%; height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quarto gráfico -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up text-primary me-2"></i>Gráfico de Fermentação (Etanol vs Tempo)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="grafico-fermentacao" style="width: 100%; height: 400px;"></div>
                 </div>
             </div>
         </div>
@@ -408,17 +421,20 @@
             Plotly.newPlot('grafico-liquefacao-substrato', [traceSubstrato], layoutSubstrato);
 
         }
+        
+        console.log("Dados da simulação selecionada:", simulacao);
 
         // Se a simulação tiver dados de sacarificação
         if (simulacao.sacarificacao) {
             const s = simulacao.sacarificacao;
+            console.log("Dados de sacarificação:", simulacao.sacarificacao);
+
 
             // Preenche os campos com os dados da sacarificação
-            document.getElementById("polissacarideos").textContent = parseFloat(s.polissacarideos).toFixed(4);
-            document.getElementById("monossacarideos").textContent = parseFloat(s.monossacarideos).toFixed(4);
-            document.getElementById("tempo-sacarificacao").textContent = parseFloat(s.tempo).toFixed(1);
-            document.getElementById("enzima-sacarificacao").textContent = parseFloat(s.enzima).toFixed(4);
-            document.getElementById("conversao-sacarificacao").textContent = parseFloat(s.conversao).toFixed(2);
+            document.getElementById("art-inicial").textContent = parseFloat(s.art_inicial).toFixed(4);
+            document.getElementById("oligossacarideos-inicial").textContent = parseFloat(s.oligossacarideos_inicial).toFixed(4);
+            document.getElementById("etanol-final").textContent = parseFloat(s.etanol_final).toFixed(4);
+            document.getElementById("biomassa-final").textContent = parseFloat(s.biomassa_final).toFixed(4);
 
             // Exibe o bloco com os dados de sacarificação
             document.getElementById("dados-sacarificacao").classList.remove("d-none");
@@ -426,25 +442,43 @@
             // Gráfico de Sacarificação
             const traceEtanol = {
                 x: s.grafico.map(p => p.tempo),
-                y: s.grafico.map(p => parseFloat(p.etanol).toFixed(4)),
+                y: s.grafico.map(p => parseFloat(p.etanol)),
                 type: 'scatter',
                 mode: 'lines+markers',
                 name: 'Etanol (g/L)',
                 line: { color: 'purple', width: 2 }
             };
 
-            const traceAcucar = {
+            const traceART = {
                 x: s.grafico.map(p => p.tempo),
-                y: s.grafico.map(p => parseFloat(p.acucar).toFixed(4)),
+                y: s.grafico.map(p => parseFloat(p.art)),
                 type: 'scatter',
                 mode: 'lines+markers',
-                name: 'Açúcar (g/L)',
-                line: { color: 'red', dash: 'dash', width: 2 }
+                name: 'ART (g/L)',
+                line: { color: 'green', width: 2 }
+            };
+
+            const traceOligos = {
+                x: s.grafico.map(p => p.tempo),
+                y: s.grafico.map(p => parseFloat(p.oligos)),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Oligossacarídeos (g/L)',
+                line: { color: 'blue', dash: 'dash', width: 2 }
+            };
+
+            const traceBiomassa = {
+                x: s.grafico.map(p => p.tempo),
+                y: s.grafico.map(p => parseFloat(p.biomassa)),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Biomassa (g/L)',
+                line: { color: 'orange', dash: 'dot', width: 2 }
             };
 
             const layoutSacarificacao = {
                 title: {
-                    text: 'Produção de Etanol na Sacarificação',
+                    text: 'Evolução da Sacarificação',
                     font: { size: 18, family: 'Arial, sans-serif', color: '#333' },
                     x: 0.05, xanchor: 'left'
                 },
@@ -465,14 +499,15 @@
                 legend: { orientation: 'h', yanchor: 'bottom', y: 1.02, xanchor: 'right', x: 1 }
             };
 
-            Plotly.newPlot('grafico-sacarificacao', [traceEtanol, traceAcucar], layoutSacarificacao);
+            Plotly.newPlot('grafico-sacarificacao', [traceEtanol, traceART, traceOligos, traceBiomassa], layoutSacarificacao);
         }
 
-        // Se a simulação tiver dados de fermentação
+        // Se a simulação tiver dados de fermentação (ajustar conforme campos disponíveis)
         if (simulacao.fermentacao) {
             const f = simulacao.fermentacao;
 
             // Preenche os campos com os dados da fermentação
+            // (Ajuste os IDs conforme seu HTML)
             document.getElementById("acucar-inicial").textContent = parseFloat(f.acucar_inicial).toFixed(4);
             document.getElementById("alcool-produzido").textContent = parseFloat(f.alcool_produzido).toFixed(4);
             document.getElementById("tempo-fermentacao").textContent = parseFloat(f.tempo).toFixed(1);
@@ -481,6 +516,42 @@
 
             // Exibe o bloco com os dados de fermentação
             document.getElementById("dados-fermentacao").classList.remove("d-none");
+
+            // Gráfico de fermentação (se houver dados no JSON)
+            if (f.grafico) {
+                const traceFermentacao = {
+                    x: f.grafico.map(p => p.tempo),
+                    y: f.grafico.map(p => parseFloat(p.etanol)),
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    name: 'Etanol (g/L)',
+                    line: { color: 'red', width: 2 }
+                };
+
+                const layoutFermentacao = {
+                    title: {
+                        text: 'Produção de Etanol na Fermentação',
+                        font: { size: 18, family: 'Arial, sans-serif', color: '#333' },
+                        x: 0.05, xanchor: 'left'
+                    },
+                    xaxis: {
+                        title: { text: 'Tempo (h)', font: { size: 14, color: '#333' } },
+                        showline: true, linewidth: 2, linecolor: '#ccc',
+                        mirror: true, zeroline: false
+                    },
+                    yaxis: {
+                        title: { text: 'Concentração de Etanol (g/L)', font: { size: 14, color: '#333' } },
+                        showline: true, linewidth: 2, linecolor: '#ccc',
+                        mirror: true, zeroline: false
+                    },
+                    margin: { t: 60, l: 60, r: 30, b: 60 },
+                    height: 400,
+                    plot_bgcolor: '#f9f9f9',
+                    paper_bgcolor: '#fff'
+                };
+
+                Plotly.newPlot('grafico-fermentacao', [traceFermentacao], layoutFermentacao);
+            }
         }
 
         // Exibe o card de simulação na interface

@@ -197,7 +197,7 @@ def processar_formulario_processo(request, form):
         return None, None, resultado_sacferm["erro"]
 
     sacferm = ProcessoSacarificacaoFermentacao.objects.create(
-        processo_liquefacao = instance,
+        processo_liquefacao = liquefacao,
         art_inicial = resultado_sacferm["glicose_total_g_L"][0],
         oligossacarideos_inicial = resultado_sacferm["oligossacarideos_g_L"][0],
         etanol_final = resultado_sacferm["concentracao_etanol_final"],
