@@ -13,6 +13,11 @@ from .models import ProcessoLiquefacao, CurvaLiquefacao
 from .modelos.moagem import calcular_moagem
 from .modelos.liquefacao import simular_liquefacao
 
+# SACARIFICACAO
+
+from .modelos.sacferm import simular_etanol
+from .models import ProcessoSacarificacaoFermentacao, CurvaSacFerm
+
 
 def serializar_simulacoes(ultimas_simulacoes):
     return json.dumps([
@@ -109,6 +114,7 @@ def processar_formulario_processo(request, form):
     if not form.is_valid():
         return None, None, "Formulário inválido."
 
+    # MOAGEM 
     instance = form.save(commit=False)
     quantidade = float(form.cleaned_data["quantidade_milho"])
 
@@ -119,15 +125,17 @@ def processar_formulario_processo(request, form):
     instance.energia_total = resultado["energia_total_kWh"]
     instance.save()
 
+    # LIQUEFACAO 
+    
     enzima_g = form.cleaned_data.get("enzima_g")
-    tempo_h = 50
-    concentracao_desejada = 200
+    tempo_h_liquefacao = 6
+    concentracao_desejada_liquefacao = 200 # 200g/L de amido 
 
     resultado_liquefacao = simular_liquefacao(
         massa_milho_kg=instance.milho_moido,
         enzima_g=enzima_g,
-        tempo_h=tempo_h,
-        concentracao_desejada_g_L=concentracao_desejada
+        tempo_h=tempo_h_liquefacao,
+        concentracao_desejada_g_L=concentracao_desejada_liquefacao
     )
 
     if resultado_liquefacao.get("erro"):
@@ -161,5 +169,40 @@ def processar_formulario_processo(request, form):
             oligos=o,
             produto_gerado=a + o
         )
+        
+    # SACARIFICACAO
+        
+    resultado_sacferm = simular_etanol(
+    concentracao_art_inicial =resultado_liquefacao["dados_ART"][-1],
+    concentracao_oligossacarideos_inicial =resultado_liquefacao["dados_oligos"][-1],
+    concentracao_biomassa_inicial = 0.1,
+    )
 
-    return instance, liquefacao, None
+    if resultado_sacferm.get("erro"):
+        return None, None, resultado_sacferm["erro"]
+
+    sacferm = ProcessoSacarificacaoFermentacao.objects.create(
+        processo_liquefacao = instance,
+        art_inicial = resultado_sacferm["glicose_total_g_L"][0],
+        oligossacarideos_inicial = resultado_sacferm["oligossacarideos_g_L"][0],
+        etanol_final = resultado_sacferm["concentracao_etanol_final"],
+        biomassa_final = resultado_sacferm["biomassa_final"]
+    )
+
+    for g, o, e, b, t in zip(resultado_sacferm["glicose_total_g_L"],
+                             resultado_sacferm["oligossacarideos_g_L"],
+                             resultado_sacferm["etanol_g_L"],
+                             resultado_sacferm["biomassa_g_L"],
+                             resultado_sacferm["tempo_h"]):
+        CurvaSacFerm.objects.create(
+            processo_sacferm = sacferm,
+            conc_art = g,
+            conc_oligos = o,
+            conc_etanol = e,
+            conc_biomassa = b,
+            tempo_h = t
+        )
+
+    return instance, liquefacao, sacferm, None
+
+#fim
