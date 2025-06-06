@@ -190,7 +190,7 @@ def processar_formulario_processo(request, form):
     resultado_sacferm = simular_etanol(
     concentracao_art_inicial =resultado_liquefacao["dados_ART"][-1],
     concentracao_oligossacarideos_inicial =resultado_liquefacao["dados_oligos"][-1],
-    concentracao_biomassa_inicial = 0.1,
+    concentracao_biomassa_inicial = 0.5,
     )
 
     if resultado_sacferm.get("erro"):

@@ -34,35 +34,41 @@ def index(request):
 
 @login_required(login_url='user-login')
 def processo(request):
-    # Consultas iniciais
+    # Consultas iniciais (mantidas como estão)
     dados_moagem = ProcessoMoagem.objects.all().order_by("-data")
     dados_liquefacao = ProcessoLiquefacao.objects.all()
     ultimas_simulacoes = ProcessoMoagem.objects.filter(liquefacao__isnull=False).order_by("-data")[:10]
     simulacoes_json = serializar_simulacoes(ultimas_simulacoes)
 
-    # Variáveis para gráficos e seleção
+    # Variáveis para gráficos
     grafico_liquefacao_json = None
     grafico_sacarificacao_json = None
     simulacao_selecionada = None
     sacarificacao = None
 
-    # Lógica para simulação selecionada (GET)
+    # Lógica para simulação selecionada
     simulacao_id = request.GET.get("simulacao_id")
     if simulacao_id:
         simulacao_selecionada = get_object_or_404(ProcessoMoagem, pk=simulacao_id)
         
-        if simulacao_selecionada.liquefacao:
+        # Verifica se existe liquefação associada
+        if hasattr(simulacao_selecionada, 'liquefacao') and simulacao_selecionada.liquefacao:
             # Gráfico da liquefação
             curva_dados_liq = simulacao_selecionada.liquefacao.curva_dados.all()
             grafico_liquefacao_json = gerar_grafico_curva(curva_dados_liq)
 
-            # Gráfico de sacarificação (se existir)
-            sacarificacao = simulacao_selecionada.liquefacao.sacarificacoes.first()
-            if sacarificacao:
-                curva_dados_sac = sacarificacao.curva_dados.all()
-                grafico_sacarificacao_json = gerar_grafico_sacarificacao(curva_dados_sac)
+            # Verifica se existe sacarificação para esta liquefação
+            try:
+                # Supondo que sacarificacoes é o related_name do ForeignKey
+                if hasattr(simulacao_selecionada.liquefacao, 'sacarificacoes'):
+                    sacarificacao = simulacao_selecionada.liquefacao.sacarificacoes.first()
+                    if sacarificacao:
+                        curva_dados_sac = sacarificacao.curva_dados.all()
+                        grafico_sacarificacao_json = gerar_grafico_sacarificacao(curva_dados_sac)
+            except AttributeError:
+                pass  # Não há sacarificação, continua normalmente
 
-    # Lógica para novo processo (POST)
+    # Restante do código (POST e contexto) permanece igual
     if request.method == "POST":
         form = ProcessoMoagemForm(request.POST)
         processo_instancia, liquefacao_instancia, sacferm_instancia, erro = processar_formulario_processo(request, form)
@@ -75,7 +81,7 @@ def processo(request):
         curva_dados_liq = liquefacao_instancia.curva_dados.all()
         grafico_liquefacao_json = gerar_grafico_curva(curva_dados_liq, incluir_art=True)
 
-        # Gera gráfico de sacarificação (se existir)
+        # Gera gráfico de sacarificação apenas se existir
         if sacferm_instancia:
             curva_dados_sac = sacferm_instancia.curva_dados.all()
             grafico_sacarificacao_json = gerar_grafico_sacarificacao(curva_dados_sac)
@@ -87,7 +93,6 @@ def processo(request):
     else:
         form = ProcessoMoagemForm()
 
-    # Contexto para o template
     context = {
         'dados_moagem': dados_moagem,
         'dados_liquefacao': dados_liquefacao,
@@ -97,11 +102,10 @@ def processo(request):
         'ultimas_simulacoes': ultimas_simulacoes,
         'simulacao_selecionada': simulacao_selecionada,
         'simulacoes_json': simulacoes_json,
-        'sacarificacao': sacarificacao,
+        'sacarificacao': sacarificacao,  # Será None quando não houver
     }
 
     return render(request, 'simulador/processo.html', context)
-
 
 @login_required(login_url='user-login')
 def calcular_rendimento(request):

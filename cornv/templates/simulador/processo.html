@@ -504,6 +504,11 @@
 
             Plotly.newPlot('grafico-sacarificacao', [traceEtanol, traceART, traceOligos, traceBiomassa], layoutSacarificacao);
         }
+        
+        else {
+            // Oculta os dados de sacarificação caso a simulação atual não tenha
+            document.getElementById("dados-sacarificacao").classList.add("d-none");
+        }
 
         // Se a simulação tiver dados de fermentação (ajustar conforme campos disponíveis)
         if (simulacao.fermentacao) {
